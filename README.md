@@ -54,15 +54,12 @@ rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 ```
 py -m pip install --user virtualenv
 py -m venv BVI_env
-.\BVI_env\Scripts\activate
+~\BVI_env\Scripts\activate
 ```
 
-Select path interpreter ```~/BVI_env/bin/python``` (Unix/macOS) or ```(Windows)```
+Select path interpreter ```~/BVI_env/bin/python``` (Unix/macOS) or ```~\env\Scripts\python.exe``` (Windows)
 
 ![](https://i.imgur.com/EiaIJVB.png)
-
-
-
 
 <font style="color:blue" size="6">requirements.txt</font>
 
