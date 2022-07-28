@@ -41,18 +41,36 @@ This is a repository for spatial recognition of the environment surrounding a bl
 2. [Hand tracking & YOLOv6.ipynb](https://colab.research.google.com/drive/1J0qIBlP3KLpN8HH8-ohGbdEmjaVqeXM8)
 
 # <font style="color:purple" size="6">Installation requirements</font>
+
 First installation
+
+(Unix/macOS)
 ```
+python3 -m pip install --user virtualenv
 rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 ```
+
 Select interpreter ```~/BVI_env/bin/python```
 ![](https://i.imgur.com/EiaIJVB.png)
 
+(Windows)
+
+
+<font style="color:blue" size="4">requirements.txt</font>
+
 ```
+pip install mediapipe
+pip install pyttsx3
+pip install easyocr
+```
+or
+
+```
+cd ./
 pip install -r  requirements.txt
 ```
 
-<font style="color:blue" size="4">requirements.txt</font>
+list of packages 
 ```
 absl-py==1.2.0
 attrs==21.4.0
