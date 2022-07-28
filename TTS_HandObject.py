@@ -13,23 +13,6 @@ mp_hands = mp.solutions.hands
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 
-# create funtion to speak text
-def speak(text):
-    # create engine
-    engine = pyttsx3.init()
-    # set rate and volume
-    engine.setProperty('rate', 150)
-    engine.setProperty('volume', 1)
-    # speak text
-    engine.say(text)
-    # run engine
-    engine.runAndWait()
-    # stop engine
-    engine.stop()
-    # close engine
-    engine.close()
-    # return to main
-    return
 
 hands = mp_hands.Hands( # create hands object
 		max_num_hands=1,
@@ -43,11 +26,40 @@ face_detection = mp_face_detection.FaceDetection( # create face detection object
 		min_detection_confidence=0.5)
 
 
+# create funtion to speak text
+def speak(text):
+    # create engine
+    engine = pyttsx3.init()
+    # set rate and volume
+    engine.setProperty('rate', 150)
+    engine.setProperty('volume', 1)
+    # speak text
+    engine.say(text)
+    # run engine
+    engine.runAndWait()
+    # stop engine
+    engine.stop()
+    return
+
+# create funtion to detect finges from hands object results_hands
+def detect_fingers(results_hands):
+    for hand_landmarks in results_hands.multi_hand_landmarks:   
+        x5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * width)
+        y5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * height)
+        x1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * width)
+        y1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * height)
+        x2 = int(hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x * width)
+        y2 = int(hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y * height)
+        x3 = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].x * width)
+        y3 = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y * height)
+        x4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x * width)
+        y4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y * height)
+    return [(x5,y5),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
+
 # capture video
 cap1 = cv2.VideoCapture(0)
 success, image = cap1.read()
 height, width, _ = image.shape
-
 
 # define distance minimum between hand and face
 delta = .05
@@ -80,29 +92,20 @@ while cap1.isOpened():
             speak("Detected Hand") 
             PrevFingerDetect = True
 
-        for hand_landmarks in results_hands.multi_hand_landmarks:   
-            x5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * width)
-            y5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * height)
-            x1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * width)
-            y1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * height)
-            x2 = int(hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x * width)
-            y2 = int(hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y * height)
-            x3 = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].x * width)
-            y3 = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y * height)
-            x4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x * width)
-            y4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y * height)
+        # detect fingers position from hands object results_hands
+        finges_position = detect_fingers(results_hands)
 
-        cv2.circle(image, (x5, y5), 3,(255,0,0), 3)
-        cv2.circle(image, (x1, y1), 3,(255,0,0), 3)
-        cv2.circle(image, (x2, y2), 3,(255,0,0), 3)
-        cv2.circle(image, (x3, y3), 3,(255,0,0), 3)
-        cv2.circle(image, (x4, y4), 3,(255,0,0), 3)
+        cv2.circle(image, finges_position[0], 3,(255,0,0), 3)
+        cv2.circle(image, finges_position[1], 3,(255,0,0), 3)
+        cv2.circle(image, finges_position[2], 3,(255,0,0), 3)
+        cv2.circle(image, finges_position[3], 3,(255,0,0), 3)
+        cv2.circle(image, finges_position[4], 3,(255,0,0), 3)
 
-        cv2.putText(image, "5", (x5, y5), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(image, "1", (x1, y1), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(image, "2", (x2, y2), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(image, "3", (x3, y3), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(image, "4", (x4, y4), cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(image, "5", finges_position[0], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(image, "1", finges_position[1], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(image, "2", finges_position[2], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(image, "3", finges_position[3], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(image, "4", finges_position[4], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
         
 
         if results_face.detections:
@@ -122,9 +125,9 @@ while cap1.isOpened():
 
             pos = [(x_RE,y_RE),(x_LE,y_LE),(x_NT,y_NT)]
             stringObjets = ["Left-Eye", "Rigth-Eye", "Nose"]
-            sumCateros = [abs(x-x1) + abs(y-y1) for x,y in pos]
+            sumCateros = [abs(x-finges_position[1][0]) + abs(y-finges_position[1][1]) for x,y in pos]
             nearObjectIndex = sumCateros.index(min(sumCateros))
-            cv2.line(image, (x1,y1), pos[nearObjectIndex], (255,0,255), 4)
+            cv2.line(image, finges_position[1], pos[nearObjectIndex], (255,0,255), 4)
             cv2.putText(image, stringObjets[nearObjectIndex], pos[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
     
     else:
