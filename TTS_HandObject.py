@@ -71,9 +71,8 @@ def eyesnose_positions(results_face_detection):
 def draw_detected_objects(frame, objects_labels, objects_positions):
     for i, position in enumerate(objects_positions):
         cv2.circle(frame, position, 5, (0, 0, 255), 2)
-        cv2.putText(frame, objects_labels[i], position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
+        cv2.putText(frame, objects_labels[i], position, cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
     return frame
-
 
 
 # capture video
@@ -114,8 +113,10 @@ while cap1.isOpened():
             speak("Detected Hand") 
             PrevFingerDetect = True
         
-        fingertips = fingertips_positions(results_hands)    # position points of fingertips detected
-        draw_fingerstips(fingertips, frame)                 # draw dots and labels at the fingertip position in the frame
+        fingertips = fingertips_positions(results_hands)                    # position points of fingertips detected
+        fingertips_labels = ["Thumb", "Index", "Middle", "Ring", "Pinky"]   # labels of fingertips detected
+        index_position = fingertips[1]                                      # position of index finger
+        draw_detected_objects(frame, fingertips_labels, fingertips)         # draw dots and labels at the fingertip position on the frame            
 
         if results_face.detections:
             eyesnose = eyesnose_positions(results_face.detections)  # position points of the eyes and nose tip detected
