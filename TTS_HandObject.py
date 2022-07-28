@@ -53,12 +53,11 @@ def fingertips_positions(results_hands):
     return [(x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
 
 
-# function to draw dots and labels at the fingertip position in the frame
-def draw_fingerstips(fingertips, frame):
-    fingertip_labels = ["0", "1", "2", "3", "4"]    # list of labels for fingertips
-    for i, finger_position in enumerate(fingertips):
-        cv2.circle(frame, finger_position, 5, (0, 0, 255), 2)
-        cv2.putText(frame, fingertip_labels[i], finger_position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
+# function to draw dots and labels at the position of the detected objects in the video frame
+def draw_detected_objects(frame, objects_labels, objects_positions):
+    for i, position in enumerate(objects_positions):
+        cv2.circle(frame, position, 5, (0, 0, 255), 2)
+        cv2.putText(frame, objects_labels[i], position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
     return frame
 
 # capture video
