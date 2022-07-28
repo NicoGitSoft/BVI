@@ -119,14 +119,13 @@ while cap1.isOpened():
         draw_detected_objects(frame, fingertips_labels, fingertips)         # draw dots and labels at the fingertip position on the frame            
 
         if results_face.detections:
-            eyesnose = eyesnose_positions(results_face.detections)  # position points of the eyes and nose tip detected
+            object_positions = eyesnose_positions(results_face.detections)  # position points of the eyes and nose tip detected
+            eyesnose_labes = ["Left-Eye", "Rigth-Eye", "Nose"]
 
-            pos = [(x_RE,y_RE),(x_LE,y_LE),(x_NT,y_NT)]
-            stringObjets = ["Left-Eye", "Rigth-Eye", "Nose"]
-            sumCateros = [abs(x-finges_position[1][0]) + abs(y-finges_position[1][1]) for x,y in pos]
+            sumCateros = [abs(x-index_position[0]) + abs(y-index_position[1]) for x,y in object_positions]
             nearObjectIndex = sumCateros.index(min(sumCateros))
-            cv2.line(frame, finges_position[1], pos[nearObjectIndex], (255,0,255), 4)
-            cv2.putText(frame, stringObjets[nearObjectIndex], pos[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+            cv2.line(frame, index_position, object_positions[nearObjectIndex], (255,0,255), 4)
+            cv2.putText(frame, eyesnose_labes[nearObjectIndex], pos[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
     
     else:
         if PrevFingerDetect:
