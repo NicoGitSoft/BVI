@@ -14,7 +14,7 @@ mp_drawing = mp.solutions.drawing_utils
 
 
 hands = mp_hands.Hands( # create hands object
-		max_num_hands=1,
+		max_num_hands=4,
 		model_complexity=0,
 		min_detection_confidence=0.5,
 		min_tracking_confidence=0.5)
