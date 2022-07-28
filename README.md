@@ -2,10 +2,8 @@
 Autor: *nicolas.ibanez.r@usach.cl*
 
 This is a repository for spatial recognition of the environment surrounding a blind person through artificial intelligence.
-![](https://s4.gifyu.com/images/BVI.gif)
+![Alt Text][https://s4.gifyu.com/images/BVI.gif)
 
-## List of contents
-[ToC]
 
 ## Task: 
 1. Crear un script Python para extraer los fotogramas de un video de alta definición.
