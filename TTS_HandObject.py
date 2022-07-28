@@ -53,12 +53,28 @@ def fingertips_positions(results_hands):
     return [(x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
 
 
+# function to return the position of the eyes and nose tip in a list
+def eyesnose_positions(results_face_detection):
+    for detection in results_face.detections:
+        # Right eye position
+        x_RE = int(detection.location_data.relative_keypoints[0].x * width)
+        y_RE = int(detection.location_data.relative_keypoints[0].y * height)
+        # Left eye position
+        x_LE = int(detection.location_data.relative_keypoints[1].x * width)
+        y_LE = int(detection.location_data.relative_keypoints[1].y * height)
+        # Nose tip position
+        x_NT = int(detection.location_data.relative_keypoints[2].x * width)
+        y_NT = int(detection.location_data.relative_keypoints[2].y * height)
+    return [(x_RE,y_RE),(x_LE,y_LE),(x_NT,y_NT)]
+
 # function to draw dots and labels at the position of the detected objects in the video frame
 def draw_detected_objects(frame, objects_labels, objects_positions):
     for i, position in enumerate(objects_positions):
         cv2.circle(frame, position, 5, (0, 0, 255), 2)
         cv2.putText(frame, objects_labels[i], position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
     return frame
+
+
 
 # capture video
 cap1 = cv2.VideoCapture(0)
@@ -98,23 +114,11 @@ while cap1.isOpened():
             speak("Detected Hand") 
             PrevFingerDetect = True
         
-        fingertips = fingertips_positions(results_hands)    # position points of detected objects
+        fingertips = fingertips_positions(results_hands)    # position points of fingertips detected
         draw_fingerstips(fingertips, frame)                 # draw dots and labels at the fingertip position in the frame
 
         if results_face.detections:
-            for detection in results_face.detections:
-                # Ojo derecho
-                x_RE = int(detection.location_data.relative_keypoints[0].x * width)
-                y_RE = int(detection.location_data.relative_keypoints[0].y * height)
-                cv2.circle(frame, (x_RE, y_RE), 3, (0, 0, 255), 5)
-                # Ojo izquierdo
-                x_LE = int(detection.location_data.relative_keypoints[1].x * width)
-                y_LE = int(detection.location_data.relative_keypoints[1].y * height)
-                cv2.circle(frame, (x_LE, y_LE), 3, (255, 0, 255), 5)
-                # Punta de la nariz
-                x_NT = int(detection.location_data.relative_keypoints[2].x * width)
-                y_NT = int(detection.location_data.relative_keypoints[2].y * height)
-                cv2.circle(frame, (x_NT, y_NT), 3, (255, 0, 0), 5)
+            eyesnose = eyesnose_positions(results_face.detections)  # position points of the eyes and nose tip detected
 
             pos = [(x_RE,y_RE),(x_LE,y_LE),(x_NT,y_NT)]
             stringObjets = ["Left-Eye", "Rigth-Eye", "Nose"]
