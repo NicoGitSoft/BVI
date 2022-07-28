@@ -33,7 +33,7 @@ def speak(text):
     engine.setProperty('rate', 150)     # set rate and volume
     engine.setProperty('volume', 1)     # set volume``
     engine.say(text)                    # say text
-    engine.runAndWait()                 # run engine
+    #engine.runAndWait()                 # run engine
     engine.stop()                       # stop engine
     return
 
