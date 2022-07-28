@@ -41,9 +41,14 @@ This is a repository for spatial recognition of the environment surrounding a bl
 2. [Hand tracking & YOLOv6.ipynb](https://colab.research.google.com/drive/1J0qIBlP3KLpN8HH8-ohGbdEmjaVqeXM8)
 
 # <font style="color:purple" size="6">Installation requirements</font>
+First installation
 ```
-rm -rf ~/BVI_env 
-python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
+rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
+```
+Select interpreter ```~/BVI_env/bin/python```
+![](https://i.imgur.com/EiaIJVB.png)
+
+```
 pip install -r  requirements.txt
 ```
 
