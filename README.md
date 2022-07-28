@@ -52,6 +52,7 @@ rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 
 (Windows)
 ```
+python.exe -m pip install --upgrade pip
 py -m pip install --user virtualenv
 py -m venv BVI_env
 ~\BVI_env\Scripts\activate
@@ -71,7 +72,7 @@ pip install easyocr
 or
 
 ```
-cd ./
+cd ~/
 pip install -r  requirements.txt
 ```
 
