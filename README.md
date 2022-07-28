@@ -2,7 +2,7 @@
 Autor: *nicolas.ibanez.r@usach.cl*
 
 This is a repository for spatial recognition of the environment surrounding a blind person through artificial intelligence.
-![Alt Text][https://s4.gifyu.com/images/BVI.gif)
+![Alt Text](https://s4.gifyu.com/images/BVI.gif)
 
 
 ## Task: 
