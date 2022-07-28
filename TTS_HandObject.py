@@ -74,6 +74,12 @@ def draw_detected_objects(frame, objects_labels, objects_positions):
         cv2.putText(frame, objects_labels[i], position, cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
     return frame
 
+# function that draws a line between the object nearest to the index finger 
+def neighbor_object_line(frame, index_position, object_positions):
+    sumCateros = [abs(x-index_position[0]) + abs(y-index_position[1]) for x,y in object_positions]
+    nearObjectIndex = sumCateros.index(min(sumCateros))
+    cv2.line(frame, index_position, object_positions[nearObjectIndex], (255,0,255), 4)
+    cv2.putText(frame, eyesnose_labes[nearObjectIndex], object_positions[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
 
 # capture video
 cap1 = cv2.VideoCapture(0)
@@ -122,11 +128,7 @@ while cap1.isOpened():
         if results_face.detections:
             object_positions = eyesnose_positions(results_face.detections)  # position points of the eyes and nose tip detected
             eyesnose_labes = ["Left-Eye", "Rigth-Eye", "Nose"]
-
-            sumCateros = [abs(x-index_position[0]) + abs(y-index_position[1]) for x,y in object_positions]
-            nearObjectIndex = sumCateros.index(min(sumCateros))
-            cv2.line(frame, index_position, object_positions[nearObjectIndex], (255,0,255), 4)
-            cv2.putText(frame, eyesnose_labes[nearObjectIndex], object_positions[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+            neighbor_object_line(frame, index_position, object_positions)   # draw line between the object nearest to the index finger and the eyes and nose tip
     
     else:
         if PrevFingerDetect:
