@@ -114,7 +114,8 @@ while cap1.isOpened():
             PrevFingerDetect = True
         
         fingertips = fingertips_positions(results_hands)                    # position points of fingertips detected
-        fingertips_labels = ["Thumb", "Index", "Middle", "Ring", "Pinky"]   # labels of fingertips detected
+        #fingertips_labels = ["Thumb", "Index", "Middle", "Ring", "Pinky"]   # labels of fingertips detected
+        fingertips_labels = ["0", "1", "2", "3", "4"]
         index_position = fingertips[1]                                      # position of index finger
         draw_detected_objects(frame, fingertips_labels, fingertips)         # draw dots and labels at the fingertip position on the frame            
 
