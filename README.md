@@ -5,6 +5,7 @@ This is a repository for spatial recognition of the environment surrounding a bl
 
 <img src="https://s4.gifyu.com/images/BVI.gif" width="450" />
 
+<img src="https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif" width="40" height="40" />
 
 ## Task: 
 1. Crear un script Python para extraer los fotogramas de un video de alta definición.
