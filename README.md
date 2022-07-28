@@ -51,12 +51,16 @@ rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 ```
 
 Select interpreter ```~/BVI_env/bin/python```
+
 ![](https://i.imgur.com/EiaIJVB.png)
 
 (Windows)
+```
+py -m pip install --user virtualenv
+```
 
 
-<font style="color:blue" size="4">requirements.txt</font>
+<font style="color:blue" size="6">requirements.txt</font>
 
 ```
 pip install mediapipe
