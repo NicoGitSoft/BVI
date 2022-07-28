@@ -37,8 +37,8 @@ def speak(text):
     engine.stop()                       # stop engine
     return
 
-# create funtion to detect finges from hands object results_hands
-def detect_fingers(results_hands):
+# function to return the position of the fingertips in a list
+def fingertips_positions(results_hands):
     for hand_landmarks in results_hands.multi_hand_landmarks:   
         x0 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * width)
         y0 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * height)
@@ -52,18 +52,14 @@ def detect_fingers(results_hands):
         y4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y * height)
     return [(x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
 
-# Create a function for drawing fingertips
-def draw_fingerstips(finges_position, frame):
-    for finger_position in finges_position:
-        cv2.circle(frame, finger_position, 5, (0, 0, 255), 2)
-    return frame
 
-# Create a function to enumerate the fingertips in the frame
-def draw_fingertip_labels(finges_position, fingertip_labels,frame):
-    for i, finger_position in enumerate(finges_position):
+# function to draw dots and labels at the fingertip position in the frame
+def draw_fingerstips(fingertips, frame):
+    fingertip_labels = ["0", "1", "2", "3", "4"]    # list of labels for fingertips
+    for i, finger_position in enumerate(fingertips):
+        cv2.circle(frame, finger_position, 5, (0, 0, 255), 2)
         cv2.putText(frame, fingertip_labels[i], finger_position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
     return frame
-
 
 # capture video
 cap1 = cv2.VideoCapture(0)
@@ -86,34 +82,25 @@ while cap1.isOpened():
         print("Ignoring empty camera frame.")
         continue
 
-    frame.flags.writeable = False
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame.flags.writeable = False                   # make frame read-only
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # convert frame to RGB
   
-    results_hands = hands.process(frame)
-    results_face = face_detection.process(frame)
+    results_hands = hands.process(frame)            # process frame with hands object
+    results_face = face_detection.process(frame)    # process frame with face detection object
 
     frame.flags.writeable = True
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+    # check if hand is detected
     if results_hands.multi_hand_landmarks is not None:
-        
+
+        # check if hand is in the frame previously
         if not PrevFingerDetect:
             speak("Detected Hand") 
             PrevFingerDetect = True
         
-        finges_position = detect_fingers(results_hands)     # detect fingers from hands object results_hands
-        fingertip_labels = ["0", "1", "2", "3", "4"]        # create list of labels for fingertips
-
-        draw_fingerstips(finges_position, frame)                            # draw fingertips from finges_position
-        draw_fingertip_labels(finges_position, fingertip_labels, frame)     # draw labels from fingertip_labels
-        
-
-        cv2.putText(frame, "0", finges_position[0], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(frame, "1", finges_position[1], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(frame, "2", finges_position[2], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(frame, "3", finges_position[3], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        cv2.putText(frame, "4", finges_position[4], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
-        
+        fingertips = fingertips_positions(results_hands)    # position points of detected objects
+        draw_fingerstips(fingertips, frame)                 # draw dots and labels at the fingertip position in the frame
 
         if results_face.detections:
             for detection in results_face.detections:
