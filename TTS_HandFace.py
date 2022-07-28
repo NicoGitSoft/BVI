@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # import pyttsx3 and mediapipe
-import pyttsx3
-import cv2
+import pyttsx3, cv2
 import mediapipe as mp
 
 # create objet mediaPipe
