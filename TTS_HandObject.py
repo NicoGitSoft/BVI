@@ -125,7 +125,7 @@ while cap1.isOpened():
             sumCateros = [abs(x-index_position[0]) + abs(y-index_position[1]) for x,y in object_positions]
             nearObjectIndex = sumCateros.index(min(sumCateros))
             cv2.line(frame, index_position, object_positions[nearObjectIndex], (255,0,255), 4)
-            cv2.putText(frame, eyesnose_labes[nearObjectIndex], pos[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+            cv2.putText(frame, eyesnose_labes[nearObjectIndex], object_positions[nearObjectIndex], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
     
     else:
         if PrevFingerDetect:
