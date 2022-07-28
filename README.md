@@ -2,10 +2,7 @@
 Autor: *nicolas.ibanez.r@usach.cl*
 
 This is a repository for spatial recognition of the environment surrounding a blind person through artificial intelligence.
-
 <img src="https://s4.gifyu.com/images/BVI.gif" width="40" />
-
-<img src="https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif" width="40" height="40" />
 
 ## Task: 
 1. Crear un script Python para extraer los fotogramas de un video de alta definición.
@@ -45,7 +42,8 @@ This is a repository for spatial recognition of the environment surrounding a bl
 
 # <font style="color:purple" size="6">Installation requirements</font>
 ```
-rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
+rm -rf ~/BVI_env 
+python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 pip install -r  requirements.txt
 ```
 
