@@ -1,4 +1,11 @@
-import easyocr
-reader = easyocr.Reader(['es', 'en'])
+import easyocr, cv2
+import PIL
+from PIL import ImageDraw
+im = PIL.Image.open("thai.png")
+im
 
-result = reader.readtext('./Datasets/Best_images/PXL_20220726_134600828.jpg')
+reader = easyocr.Reader(['ch_tra', 'en'], gpu=False)
+
+
+img = cv2.imread('chinese_tra.jpg')
+result = reader.readtext(img)
