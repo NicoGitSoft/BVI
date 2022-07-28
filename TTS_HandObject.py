@@ -28,24 +28,20 @@ face_detection = mp_face_detection.FaceDetection( # create face detection object
 
 # create funtion to speak text
 def speak(text):
-    # create engine
-    engine = pyttsx3.init()
-    # set rate and volume
-    engine.setProperty('rate', 150)
-    engine.setProperty('volume', 1)
-    # speak text
-    engine.say(text)
-    # run engine
-    engine.runAndWait()
-    # stop engine
-    engine.stop()
+    
+    engine = pyttsx3.init()             # create engine
+    engine.setProperty('rate', 150)     # set rate and volume
+    engine.setProperty('volume', 1)     # set volume
+    engine.say(text)                    # say text
+    engine.runAndWait()                 # run engine
+    engine.stop()                       # stop engine
     return
 
 # create funtion to detect finges from hands object results_hands
 def detect_fingers(results_hands):
     for hand_landmarks in results_hands.multi_hand_landmarks:   
-        x5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * width)
-        y5 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * height)
+        x0 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x * width)
+        y0 = int(hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y * height)
         x1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].x * width)
         y1 = int(hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP].y * height)
         x2 = int(hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].x * width)
@@ -54,13 +50,20 @@ def detect_fingers(results_hands):
         y3 = int(hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y * height)
         x4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x * width)
         y4 = int(hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y * height)
-    return [(x5,y5),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
+    return [(x0,y0),(x1,y1),(x2,y2),(x3,y3),(x4,y4)]
 
 # Create a function for drawing fingertips
 def draw_fingerstips(finges_position, frame):
     for finger_position in finges_position:
-        cv2.circle(frame, finger_position, 5, (0, 0, 255), -1)
+        cv2.circle(frame, finger_position, 5, (0, 0, 255), 2)
     return frame
+
+# Create a function to enumerate the fingertips in the frame
+def draw_fingertip_labels(finges_position, fingertip_labels,frame):
+    for i, finger_position in enumerate(finges_position):
+        cv2.putText(frame, fingertip_labels[i], finger_position, cv2.FONT_HERSHEY_PLAIN, 0.5, (0, 0, 255), 2)
+    return frame
+
 
 # capture video
 cap1 = cv2.VideoCapture(0)
@@ -97,18 +100,15 @@ while cap1.isOpened():
         if not PrevFingerDetect:
             speak("Detected Hand") 
             PrevFingerDetect = True
+        
+        finges_position = detect_fingers(results_hands)     # detect fingers from hands object results_hands
+        fingertip_labels = ["0", "1", "2", "3", "4"]        # create list of labels for fingertips
 
-        # detect fingers position from hands object results_hands
-        finges_position = detect_fingers(results_hands)
-        draw_fingerstips(finges_position, frame)
+        draw_fingerstips(finges_position, frame)                            # draw fingertips from finges_position
+        draw_fingertip_labels(finges_position, fingertip_labels, frame)     # draw labels from fingertip_labels
+        
 
-        #cv2.circle(frame, finges_position[0], 3,(255,0,0), 3)
-        #cv2.circle(frame, finges_position[1], 3,(255,0,0), 3)
-        #cv2.circle(frame, finges_position[2], 3,(255,0,0), 3)
-        #cv2.circle(frame, finges_position[3], 3,(255,0,0), 3)
-        #cv2.circle(frame, finges_position[4], 3,(255,0,0), 3)
-
-        cv2.putText(frame, "5", finges_position[0], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
+        cv2.putText(frame, "0", finges_position[0], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
         cv2.putText(frame, "1", finges_position[1], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
         cv2.putText(frame, "2", finges_position[2], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
         cv2.putText(frame, "3", finges_position[3], cv2.FONT_HERSHEY_PLAIN, 2, (255,255,255), 2)
