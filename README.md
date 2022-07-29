@@ -47,13 +47,17 @@ First installation
 (Unix/macOS)
 ```
 python3 -m pip install --user virtualenv
-rm -rf ~/BVI_env && python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
+rm -rf ~/BVI_env
+python3 -m venv ~/BVI_env && source ~/BVI_env/bin/activate
 ```
 
 (Windows)
 ```
 python.exe -m pip install --upgrade pip
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine CurrentUser
 py -m pip install --user virtualenv
+rm ~/BVI_env
 py -m venv BVI_env
 ~\BVI_env\Scripts\activate
 ```
