@@ -31,10 +31,9 @@ This is a repository for spatial recognition of the environment surrounding a bl
 [Dataset-Drive]:https://drive.google.com/drive/folders/1dSrF76v1vT8GWcZ8R5cJmPUMBZocqw7c
 
 ## Multi-media
-![](https://i.imgur.com/ZmsaK1L.png)
-![](https://i.imgur.com/LmQ0Pqr.jpg)
-![](https://i.imgur.com/cxLTul3.jpg)
-
+<img src="https://i.imgur.com/ZmsaK1L.png" width="720" />
+<img src="https://i.imgur.com/LmQ0Pqr.jpg" width="720" />
+<img src="https://i.imgur.com/cxLTul3.jpg" width="720" />
 
 ## Scripts & Google Colab
 
