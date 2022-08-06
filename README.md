@@ -57,8 +57,8 @@ python.exe -m pip install --upgrade pip
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine CurrentUser
 py -m pip install --user virtualenv
-rm ~/BVI_env
-py -m venv BVI_env
+mkdir ~/Desktop/Proyect
+py -m venv ~\Desktop\Proyect\env
 ~\BVI_env\Scripts\activate
 ```
 
