@@ -57,9 +57,11 @@ python.exe -m pip install --upgrade pip
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine CurrentUser
 py -m pip install --user virtualenv
-mkdir ~/Desktop/Proyect
-py -m venv ~\Desktop\Proyect\env
-~\BVI_env\Scripts\activate
+mkdir ~\Desktop\Proyect
+cd ~\Desktop\Proyect
+py -m venv env
+.\\env\Scripts\activate
+pip freeze
 ```
 
 Select path interpreter ```~/BVI_env/bin/python``` (Unix/macOS) or ```~\env\Scripts\python.exe``` (Windows)
