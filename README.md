@@ -10,7 +10,6 @@ This is a repository for spatial recognition of the environment surrounding a bl
 2. Crear un dataset para señalética del metro relevante para la orientación de las personas ciegas.
 3. Incorporar tecnologías como un generador de voz de IA realista, reconocimiento y seguimieto de la mano en un script echo en python.
 4. Incorporar el script creado en un dispositivo móvil ya sea un *smartphone* o un micro-controlador.
-5. 
 
 | idea | Links to associated documentation  |
 |:----:|:----------------------------------:|
