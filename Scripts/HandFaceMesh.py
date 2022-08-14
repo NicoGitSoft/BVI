@@ -78,13 +78,12 @@ while cap.isOpened():
     # check if hand is detected
     if results_hands.multi_hand_landmarks is not None:
 
-#        # check if hand is in the frame previously
-#        if not PrevFingerDetect:
-#            continue
+        # check if hand is in the frame previously
+        if not PrevFingerDetect:
+            continue
         
         fingertips = fingertips_positions(results_hands)                    # position points of fingertips detected
-        #fingertips_labels = ["Thumb", "Index", "Middle", "Ring", "Pinky"]   # labels of fingertips detected
-        fingertips_labels = ["0", "1", "2", "3", "4"]
+        fingertips_labels = ["0", "1", "2", "3", "4"]                       # 
         index_position = fingertips[1]                                      # position of index finger
         draw_detected_objects(frame, fingertips_labels, fingertips)         # draw dots and labels at the fingertip position on the frame            
 
