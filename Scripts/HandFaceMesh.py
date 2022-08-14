@@ -80,10 +80,12 @@ while cap.isOpened():
 
         # check if hand is in the frame previously
         if not PrevFingerDetect:
-            continue
+            # Escribir en el centro de la del fotograma la palabra "HAND DETECTED"
+            cv2.putText(frame, "HAND DETECTED", (int(width/2), int(height/2)), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
+            PrevFingerDetect = True
         
         fingertips = fingertips_positions(results_hands)                    # position points of fingertips detected
-        fingertips_labels = ["0", "1", "2", "3", "4"]                       # 
+        fingertips_labels = ["0", "1", "2", "3", "4"]                       # labels of fingertips detected
         index_position = fingertips[1]                                      # position of index finger
         draw_detected_objects(frame, fingertips_labels, fingertips)         # draw dots and labels at the fingertip position on the frame            
 
@@ -110,9 +112,11 @@ while cap.isOpened():
                     landmark_drawing_spec=None,
                     connection_drawing_spec=mp_drawing_styles
                     .get_default_face_mesh_iris_connections_style())
-#    else:
-#        if PrevFingerDetect:
-#            continue
+    else:
+        if PrevFingerDetect:
+            # Escribir en el centro de la del fotograma la palabra "HAND NOT DETECTED"
+            cv2.putText(frame, "HAND NOT DETECTED", (int(width), int(height)), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
+            PrevFingerDetect = False
 
     # Flip the frame horizontally for a selfie-view display.
     cv2.imshow('manitos y cara', frame) #cv2.flip(frame, 1))
