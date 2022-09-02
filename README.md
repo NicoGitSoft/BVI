@@ -1,4 +1,4 @@
-# Assisted vision project for blind people (borrador)
+# Assisted vision project for blind people
 Autor: *nicolas.ibanez.r@usach.cl*
 
 This is a repository for spatial recognition of the environment surrounding a blind person through artificial intelligence.
