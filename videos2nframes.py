@@ -28,6 +28,7 @@ def video2nframes(video_path, output_path, n, video_name):
             count += 1
         else:
             break
+    print("Frame extraction for video " + video_name + " completed ")
     
 
 try:
