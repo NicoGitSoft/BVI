@@ -8,9 +8,8 @@ This repocitorio aims to present the files that were used for the development of
 ## Implementation illustrations
 
 
-<img src="Media/VideoRGB_Hand.gif" alt="drawing" width="300"/><img src="Media/1.jpg" alt="drawing" width="300"/><img src="Media/2.jpg" alt="drawing" width="300"/><img src="Media/3.jpg" alt="drawing" width="300"/>
+<img src="Media/VideoRGB_Hand.gif" alt="drawing" width="250"/><img src="Media/1.jpg" alt="drawing" width="250"/><img src="Media/2.jpg" alt="drawing" width="300"/><img src="Media/3.jpg" alt="drawing" width="250"/><img src="Media/4.jpg" alt="drawing" width="250"/>
 
-<img src="Media/4.jpg" alt="drawing" width="300"/>
 <img src="Media/5.jpg" alt="drawing" width="300"/>
 <img src="Media/6.jpg" alt="drawing" width="300"/>
 <img src="Media/7.jpg" alt="drawing" width="300"/>
