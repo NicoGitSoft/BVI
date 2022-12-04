@@ -7,7 +7,7 @@ This repocitorio aims to present the files that were used for the development of
 
 ## Implementation illustrations
 
-![](Media/Problem illustration.png)
+![](Media/Problem ilustration.png)
 
 <img src="Media/VideoRGB_Hand.gif" alt="drawing" width="200"/> <img src="Media/6.jpg" alt="drawing" width="200"/> <img src="Media/11.jpg" alt="drawing" width="200"/> <img src="Media/7.jpg" alt="drawing" width="200"/>
 
