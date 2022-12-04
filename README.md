@@ -17,4 +17,4 @@ This repocitorio aims to present the files that were used for the development of
 
 ## BVI-DATASET description
 
-BVI-DATASET contiene algunas de las señalizaciones de más frecuentes en aeropuertos, subterraneos y centros comerciales.
+BVI-DATASET contains some of the most frequent signage in airports, subways and shopping malls.
