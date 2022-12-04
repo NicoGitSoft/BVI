@@ -8,19 +8,11 @@ This repocitorio aims to present the files that were used for the development of
 ## Implementation illustrations
 
 
-<img src="Media/VideoRGB_Hand.gif" alt="drawing" width="250"/><img src="Media/1.jpg" alt="drawing" width="250"/><img src="Media/2.jpg" alt="drawing" width="300"/><img src="Media/3.jpg" alt="drawing" width="250"/><img src="Media/4.jpg" alt="drawing" width="250"/>
+<img src="Media/VideoRGB_Hand.gif" alt="drawing" width="200"/><img src="Media/1.jpg" alt="drawing" width="200"/><img src="Media/2.jpg" alt="drawing" width="250"/><img src="Media/3.jpg" alt="drawing" width="200"/><img src="Media/4.jpg" alt="drawing" width="200"/>
 
-<img src="Media/5.jpg" alt="drawing" width="300"/>
-<img src="Media/6.jpg" alt="drawing" width="300"/>
-<img src="Media/7.jpg" alt="drawing" width="300"/>
+<img src="Media/5.jpg" alt="drawing" width="200"/><img src="Media/6.jpg" alt="drawing" width="200"/><img src="Media/7.jpg" alt="drawing" width="200"/><img src="Media/8.jpg" alt="drawing" width="200"/>
 
-<img src="Media/8.jpg" alt="drawing" width="300"/>
-<img src="Media/9.jpg" alt="drawing" width="300"/>
-<img src="Media/10.jpg" alt="drawing" width="300"/>
-<img src="Media/11.jpg" alt="drawing" width="300"/>
-<img src="Media/12.jpg" alt="drawing" width="300"/>
-
-![](Media/VideoRGB_Hand.gif)
+<img src="Media/9.jpg" alt="drawing" width="200"/><img src="Media/10.jpg" alt="drawing" width="200"/><img src="Media/11.jpg" alt="drawing" width="200"/><img src="Media/12.jpg" alt="drawing" width="200"/>
 
 ## BVI-DATASET description
 
