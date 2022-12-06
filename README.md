@@ -7,7 +7,7 @@ This repocitorio aims to present the files that were used for the development of
 
 ## Implementation illustrations
 
-<img src="Media/Problem.jpg" alt="drawing" class="center" width="800"/>
+![Reconocimiento de señálizacion-Problem in the subway](https://user-images.githubusercontent.com/65929186/206000270-3fbaccb6-c3cc-4174-82e3-0273aca68067.svg)
 
 <img src="Media/VideoRGB_Hand.gif" alt="drawing" width="200"/> <img src="Media/6.jpg" alt="drawing" width="200"/> <img src="Media/11.jpg" alt="drawing" width="200"/> <img src="Media/7.jpg" alt="drawing" width="200"/>
 
