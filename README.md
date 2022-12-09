@@ -27,4 +27,5 @@ sudo apt install speech-dispatcher
 sudo curl -fL https://docs.luxonis.com/install_dependencies.sh | bash
 pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai
 pip intall pyserial
+pip install scipy
 ```
