@@ -1,4 +1,4 @@
-# A development of an Artificial Intelligence based blind vision system for blind people
+# Development of a vision system for blind people based on artificial intelligence.
 
 ![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v7-green.svg) ![https://docs.luxonis.com/en/latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg)
 
