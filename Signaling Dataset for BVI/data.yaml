@@ -2,12 +2,12 @@ train: ../train/images
 val: ../valid/images
 test: ../test/images
 
-nc: 22
-names: ['airplane symbol', 'baggage claim', 'bathrooms', 'danger-electricity', 'down arrow', 'emergency down arrow', 'emergency exit', 'emergency left arrow', 'emergency right arrow', 'emergency up arrow', 'extinguisher symbol', 'fire-extinguisher', 'handicapped symbol', 'left arrow', 'left', 'no trespassing', 'restaurants', 'right arrow', 'thin left arrow', 'thin right arrow', 'thin up arrow', 'up arrow']
+nc: 21
+names: ['airplane symbol', 'baggage claim', 'bathrooms', 'danger-electricity', 'down arrow', 'emergency down arrow', 'emergency exit', 'emergency left arrow', 'emergency right arrow', 'emergency up arrow', 'extinguisher symbol', 'fire-extinguisher', 'handicapped symbol', 'left arrow', 'no trespassing', 'restaurants', 'right arrow', 'thin left arrow', 'thin right arrow', 'thin up arrow', 'up arrow']
 
 roboflow:
   workspace: bvi
-  project: airport_signage
-  version: 8
+  project: bvi-signage
+  version: 6
   license: CC BY 4.0
-  url: https://universe.roboflow.com/bvi/airport_signage/dataset/8
+  url: https://universe.roboflow.com/bvi/bvi-signage/dataset/6
