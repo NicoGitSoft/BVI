@@ -2,8 +2,11 @@
 
 ![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v7-green.svg) ![https://docs.luxonis.com/en/latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg)
 
+This repocitorio aims to present the files that were used for the development of the thesis "Development of a vision system for the blind based on Artificial Intelligence" of the University of Santiago de Chile.
 
-This repocitorio aims to present the files that were used for the development of the paper "A development of an Artificial Intelligence based blind vision system for blind people" (In process of publication).
+Author: Nicolás Ibáñez Rojas
+
+E-mail: nicolas.ibanez.r@usach.cl
 
 ### Illustrations
 ![Resolution](https://user-images.githubusercontent.com/65929186/209304016-66afaf8e-b362-4e75-98e6-e8511540d4c3.svg)
