@@ -45,84 +45,71 @@ voice_messages = [
 #Crear canalización
 pipeline = dai.Pipeline()
 
-#Definir fuentes y salidas
-camRgb = pipeline.create(dai.node.ColorCamera)
-spatialDetectionNetwork = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
+# ColorCamera
+cam = pipeline.create(dai.node.ColorCamera)
+cam.setPreviewSize(width, height)
+cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+cam.setInterleaved(False)
+cam.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+cam_out = pipeline.create(dai.node.XLinkOut)
+cam_out.setStreamName("cam_out")
 
-#Definir fuentes y salidas para la red de detección espacial
+# MonoCameras & StereoDepth
 monoLeft = pipeline.create(dai.node.MonoCamera)
 monoRight = pipeline.create(dai.node.MonoCamera)
-stereo = pipeline.create(dai.node.StereoDepth)
-
-nnNetworkOut = pipeline.create(dai.node.XLinkOut)
-xoutRgb = pipeline.create(dai.node.XLinkOut)
-xoutNN = pipeline.create(dai.node.XLinkOut)
-xoutBoundingBoxDepthMapping = pipeline.create(dai.node.XLinkOut)
-xoutDepth = pipeline.create(dai.node.XLinkOut)
-
-xoutRgb.setStreamName("rgb")
-xoutNN.setStreamName("detections")
-xoutBoundingBoxDepthMapping.setStreamName("boundingBoxDepthMapping")
-xoutDepth.setStreamName("depth")
-nnNetworkOut.setStreamName("nnNetwork")
-
-#Propiedades
-camRgb.setPreviewSize(width, height)
-camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
-camRgb.setInterleaved(False)
-camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-
 monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
 monoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 monoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
-
-#Configuración de configuraciones de nodos
-stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-
-#Alinee el mapa de profundidad con la perspectiva de la cámara RGB, en la que se realiza la inferencia
-stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
+stereo = pipeline.create(dai.node.StereoDepth)
+stereo.setDepthAlign(dai.CameraBoardSocket.RGB) # Alinee el mapa de profundidad con la perspectiva de la cámara RGB
 stereo.setOutputSize(monoLeft.getResolutionWidth(), monoLeft.getResolutionHeight())
+stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+stereo_out = pipeline.create(dai.node.XLinkOut)
+stereo_out.setStreamName("stereo_out")
 
-#Configuraciones específicas de profundidad
-spatialDetectionNetwork.setBlobPath(MODEL_PATH)
-spatialDetectionNetwork.setConfidenceThreshold(0.5)
-spatialDetectionNetwork.input.setBlocking(False)
-spatialDetectionNetwork.setBoundingBoxScaleFactor(0.5)
-spatialDetectionNetwork.setDepthLowerThreshold(350)
-spatialDetectionNetwork.setDepthUpperThreshold(5000)
+# YoloSpatialDetectionNetwork
+yoloSpatial = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
+yoloSpatial.setBlobPath(MODEL_PATH)
+yoloSpatial.setConfidenceThreshold(0.5)
+yoloSpatial.input.setBlocking(False)
+yoloSpatial.setBoundingBoxScaleFactor(0.5)
+yoloSpatial.setDepthLowerThreshold(350)
+yoloSpatial.setDepthUpperThreshold(5000)
+yoloSpatial.setNumClasses(classes)
+yoloSpatial.setCoordinateSize(coordinates)
+yoloSpatial.setAnchors(anchors)
+yoloSpatial.setAnchorMasks(anchorMasks)
+yoloSpatial.setIouThreshold(0.5)
+yoloSpatial.setConfidenceThreshold(0.6)
+# Outputs of YoloSpatialDetectionNetwork
+yolo_out = pipeline.create(dai.node.XLinkOut)
+yoloSpatial_out = pipeline.create(dai.node.XLinkOut)
+yolo_out.setStreamName("yolo_out")
+yoloSpatial_out.setStreamName("yoloSpatial_out")
 
-#Parámetros específicos de Yolo
-spatialDetectionNetwork.setNumClasses(classes)
-spatialDetectionNetwork.setCoordinateSize(coordinates)
-spatialDetectionNetwork.setAnchors(anchors)
-spatialDetectionNetwork.setAnchorMasks(anchorMasks)
-spatialDetectionNetwork.setIouThreshold(0.5)
-spatialDetectionNetwork.setConfidenceThreshold(0.6)
-
-#Enlace
+# links
 monoLeft.out.link(stereo.left)
 monoRight.out.link(stereo.right)
 
-camRgb.preview.link(spatialDetectionNetwork.input)
-spatialDetectionNetwork.passthrough.link(xoutRgb.input)
+# YoloSpatialDetectionNetwork node links
+cam.preview.link(yoloSpatial.input)
+stereo.depth.link(yoloSpatial.inputDepth)
+yoloSpatial.passthrough.link(cam_out.input)
+yoloSpatial.passthroughDepth.link(stereo_out.input)
+yoloSpatial.out.link(yolo_out.input)
+yoloSpatial.outNetwork.link(yoloSpatial_out.input)
 
-spatialDetectionNetwork.out.link(xoutNN.input)
-spatialDetectionNetwork.boundingBoxMapping.link(xoutBoundingBoxDepthMapping.input)
 
-stereo.depth.link(spatialDetectionNetwork.inputDepth)
-spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
-spatialDetectionNetwork.outNetwork.link(nnNetworkOut.input)
 
-#Conéctese al dispositivo e inicie la canalización
+# Conéctese al dispositivo e inicie la canalización
 device =dai.Device(pipeline)
 
 #Las colas de salida se utilizarán para obtener los marcos rgb y los datos nn de las salidas definidas anteriormente.
-previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
-detectionNNQueue = device.getOutputQueue(name="detections", maxSize=4, blocking=False)
-xoutBoundingBoxDepthMappingQueue = device.getOutputQueue(name="boundingBoxDepthMapping", maxSize=4, blocking=False)
-depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
-networkQueue = device.getOutputQueue(name="nnNetwork", maxSize=4, blocking=False)
+previewQueue = device.getOutputQueue(name="cam_out", maxSize=4, blocking=False)
+detectionNNQueue = device.getOutputQueue(name="yolo_out", maxSize=4, blocking=False)
+depthQueue = device.getOutputQueue(name="stereo_out", maxSize=4, blocking=False)
+networkQueue = device.getOutputQueue(name="yoloSpatial_out", maxSize=4, blocking=False)
 
 #####################################################
 ######### FUNCIONES PARA EL PROCESAMIENTO ###########
@@ -145,7 +132,7 @@ def Center(x1, x2, y1, y2):
     y = int((y1 + y2) / 2)
     return x, y
 
-#Determina las coordenadas del centro del bounding box más cercano y el índice correspondiente
+# Determina las coordenadas del centro del bounding box más cercano y el índice correspondiente
 def Nearest_Coordinate(OriginPoint, Centroids):
     x0, y0 = OriginPoint
     minDist = min((x-x0)**2 + (y-y0)**2 for x, y in Centroids)
@@ -268,12 +255,12 @@ while True:
                 cv2.putText(frame, "{:.0f} %".format(confidence), (x2, y), FontFace, FontSize, TextColor, 1)
                 cv2.putText(frame, "{:.2f} [m]".format(distance) , (x2, y2), FontFace, FontSize, TextColor)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), BoxesColor, BoxesSize)
-        #Determina las coordenadas del centro del bounding box más cercano y el índice correspondiente
+        # Determina las coordenadas del centro del bounding box más cercano y el índice correspondiente
         x, y, index = Nearest_Coordinate((x0,y0), Centroids)
-        #Almacenar distancia e indice de la clase detectada del objeto más cercano
+        # Almacenar distancia e indice de la clase detectada del objeto más cercano
         nearest_labels.append(labels[detections[index].label])
         d.append(Distance3D(detections[index]))
-        #Dibujar una flecha que indique el objeto más cercano desde centro de la imágen
+        # Dibujar una flecha que indique el objeto más cercano desde centro de la imágen
         if visualize: cv2.arrowedLine(frame, (x0, y0), (x, y), LineColor, 2)
 
         #Comunicación serial para actuadores vibrotáctiles y buzzer
