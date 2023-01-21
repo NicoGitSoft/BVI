@@ -330,12 +330,12 @@ class HandTracker:
             if self.use_world_landmarks:
                 hand.world_landmarks = np.array(inference.getLayerFp16("Identity_3_dense/BiasAdd/Add")).reshape(-1,3)
             
-    def spatial_loc_roi_from_palm_center(self, hand):
-        half_size = int(hand.pd_box[2] * self.frame_size / 2)
-        zone_size = max(half_size//2, 8)
-        rect_center = dai.Point2f(int(hand.pd_box[0]*self.frame_size) + half_size - zone_size//2 + self.crop_w, int(hand.pd_box[1]*self.frame_size) + half_size - zone_size//2 - self.pad_h)
-        rect_size = dai.Size2f(zone_size, zone_size)
-        return dai.Rect(rect_center, rect_size)
+    #def spatial_loc_roi_from_palm_center(self, hand):
+    #    half_size = int(hand.pd_box[2] * self.frame_size / 2)
+    #    zone_size = max(half_size//2, 8)
+    #    rect_center = dai.Point2f(int(hand.pd_box[0]*self.frame_size) + half_size - zone_size//2 + self.crop_w, int(hand.pd_box[1]*self.frame_size) + half_size - zone_size//2 - self.pad_h)
+    #    rect_size = dai.Size2f(zone_size, zone_size)
+    #    return dai.Rect(rect_center, rect_size)
 
     def spatial_loc_roi_from_wrist_landmark(self, hand):
         zone_size = max(int(hand.rect_w_a / 10), 8)
@@ -385,20 +385,20 @@ class HandTracker:
 
         depht_frame = self.q_stereo_out.get().getFrame()
 
-        if self.input_type == "rgb":
-            if not self.use_previous_landmarks:
-                # Send image manip config to the device
-                cfg = dai.ImageManipConfig()
-                # We prepare the input to the Palm detector
-                cfg.setResizeThumbnail(self.pd_input_length, self.pd_input_length)
-                self.q_manip_cfg.send(cfg)
+        #if self.input_type == "rgb":
+        if not self.use_previous_landmarks:
+            # Send image manip config to the device
+            cfg = dai.ImageManipConfig()
+            # We prepare the input to the Palm detector
+            cfg.setResizeThumbnail(self.pd_input_length, self.pd_input_length)
+            self.q_manip_cfg.send(cfg)
 
-            in_video = self.q_video.get()
-            video_frame = in_video.getCvFrame()
-            if self.pad_h:
-                square_frame = cv2.copyMakeBorder(video_frame, self.pad_h, self.pad_h, self.pad_w, self.pad_w, cv2.BORDER_CONSTANT)
-            else:
-                square_frame = video_frame
+        in_video = self.q_video.get()
+        video_frame = in_video.getCvFrame()
+        if self.pad_h:
+            square_frame = cv2.copyMakeBorder(video_frame, self.pad_h, self.pad_h, self.pad_w, self.pad_w, cv2.BORDER_CONSTANT)
+        else:
+            square_frame = video_frame
 
         # Get palm detection
         if self.use_previous_landmarks:
@@ -406,10 +406,7 @@ class HandTracker:
         else:
             inference = self.q_pd_out.get()
             hands = self.pd_postprocess(inference)
-            if self.trace & 1:
-                print(f"Palm detection - nb hands detected: {len(hands)}")
-            self.nb_frames_pd_inference += 1  
-            bag["pd_inference"] = 1 
+            self.nb_frames_pd_inference += 1
             if not self.solo and self.nb_hands_in_previous_frame == 1 and len(hands) <= 1:
                 self.hands = self.hands_from_landmarks
             else:
@@ -434,47 +431,12 @@ class HandTracker:
             bag["lm_inference"] = len(self.hands)
             self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]
 
-            if self.trace & 1:
-                print(f"Landmarks - nb hands detected : {len(self.hands)}")
-
-            # Check that 2 detected hands do not correspond to the same hand in the image
-            # That may happen when one hand in the image cross another one
-            # A simple method is to assure that the center of the rotated rectangles are not too close
-            if len(self.hands) == 2: 
-                dist_rect_centers = mpu.distance(np.array((self.hands[0].rect_x_center_a, self.hands[0].rect_y_center_a)), np.array((self.hands[1].rect_x_center_a, self.hands[1].rect_y_center_a)))
-                if dist_rect_centers < 5:
-                    # Keep the hand with higher landmark score
-                    if self.hands[0].lm_score > self.hands[1].lm_score:
-                        self.hands = [self.hands[0]]
-                    else:
-                        self.hands = [self.hands[1]]
-                    if self.trace & 1: print("!!! Removing one hand because too close to the other one")
-
             if self.xyz:
                 self.query_xyz(self.spatial_loc_roi_from_wrist_landmark)
 
             self.hands_from_landmarks = [mpu.hand_landmarks_to_rect(h) for h in self.hands]
             
             nb_hands = len(self.hands)
-
-            #if self.use_handedness_average:
-            #    if not self.use_previous_landmarks or self.nb_hands_in_previous_frame != nb_hands:
-            #        for i in range(self.max_hands):
-            #            self.handedness_avg[i].reset()
-            #    for i in range(nb_hands):
-            #        self.hands[i].handedness = self.handedness_avg[i].update(self.hands[i].handedness)
-
-            # In duo mode , make sure only one left hand and one right hand max is returned everytime
-            #if not self.solo and nb_hands == 2 and (self.hands[0].handedness - 0.5) * (self.hands[1].handedness - 0.5) > 0:
-            #    self.hands = [self.hands[0]] # We keep the hand with best score
-            #    nb_hands = 1
-            #    if self.trace & 1: print("!!! Removing one hand because same handedness")
-
-            #if not self.solo:
-            #    if nb_hands == 1:
-            #        self.single_hand_count += 1
-            #    else:
-            #        self.single_hand_count = 0
 
             # Stats
             if nb_lm_inferences: self.nb_frames_lm_inference += 1
@@ -506,9 +468,10 @@ class HandTracker:
                 # Set the hand label
                 hand.label = "right" if hand.handedness > 0.5 else "left"       
 
-        else: # not use_lm
-            if self.xyz:
-                self.query_xyz(self.spatial_loc_roi_from_palm_center)
+        #else: # not use_lm
+        #    if self.xyz:
+        #        self.query_xyz(self.spatial_loc_roi_from_palm_center)
+
         if use_yolo:
             return video_frame, self.hands, yolo_detections, labels, width, height, depht_frame
         else:
