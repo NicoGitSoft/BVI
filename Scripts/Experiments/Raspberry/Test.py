@@ -47,6 +47,7 @@ voice_messages = [
 
 # Create pipeline
 pipeline = dai.Pipeline()
+
 # Definir entradas de los nodos DepthAI a usar
 camRgb = pipeline.create(dai.node.ColorCamera)
 spatialDetectionNetwork = pipeline.create(dai.node.YoloSpatialDetectionNetwork)
@@ -54,6 +55,7 @@ monoLeft = pipeline.create(dai.node.MonoCamera)
 monoRight = pipeline.create(dai.node.MonoCamera)
 stereo = pipeline.create(dai.node.StereoDepth)
 sysLog = pipeline.create(dai.node.SystemLogger)
+
 # Definir salida de los nodos DepthAI a usar
 xoutRgb = pipeline.create(dai.node.XLinkOut)
 nnNetworkOut = pipeline.create(dai.node.XLinkOut)
@@ -61,6 +63,7 @@ xoutNN = pipeline.create(dai.node.XLinkOut)
 xoutBoundingBoxDepthMapping = pipeline.create(dai.node.XLinkOut)
 xoutDepth = pipeline.create(dai.node.XLinkOut)
 xoutTemp = pipeline.create(dai.node.XLinkOut)
+
 # Establecer el nombre del flujo de los nodos DepthAI
 xoutRgb.setStreamName("rgb")
 xoutNN.setStreamName("detections")
@@ -69,11 +72,13 @@ xoutDepth.setStreamName("depth")
 nnNetworkOut.setStreamName("nnNetwork")
 xoutTemp.setStreamName("sysinfo")
 sysLog.setRate(1)  # 1 Hz
+
 # Properties de la cámara RGB
 camRgb.setPreviewSize(width, height)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 camRgb.setInterleaved(False)
 camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+
 # Propiedades de las cámaras monocrómicas para la cámaras estéreo
 monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
 monoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
@@ -212,7 +217,6 @@ d = []   # Muestras de la distancias a la detecion más cercana con visión mono
 z = []   # Muestras de las distancias a los obstáculos en la ROI central con visión estereoscópica
 h = []   # Muestras de las distancias horizontales en piexeles de la detección más cercana al centro de la imagen
 v = []   # Muestras de las distancias verticales en piexeles de la detección más cercana al centro de la imagen 
-dist2UpperROI = []     # Muestras de las distancias a los obstáculos en la ROI superior con visión estereoscópica
 haptic_messages  = []  # Muestras de los mensajes de activación del vibrador UP de la interfaz háptica
 buzzer_messages  = []  # Muestras de los mensajes de activación del buzzer
 nearest_labels = []  # Muestras de la etiquta de la deteción más cercana
@@ -250,7 +254,7 @@ while True:
             wait_time_buzzer = 1/(bps)*z[-1]/(zmax-zmin) # segundos
             if f1(time.time() - start_buzze_time) > f2(wait_time_buzzer):
                 # Sonar el buzzer
-                serial.write(b'1')
+                serial.write(b'0')
                 start_buzze_time = time.time()
                 buzzer_messages.append('1')
             else:
