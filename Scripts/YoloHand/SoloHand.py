@@ -183,7 +183,6 @@ class HandRegion:
         return world_landmarks_rotated
 
 class HandTracker:
-
     def __init__(self, input_src=None,
                 pd_model=PALM_DETECTION_MODEL, 
                 pd_score_thresh=0.5, pd_nms_thresh=0.3,
@@ -292,11 +291,6 @@ class HandTracker:
         self.use_previous_landmarks = False
         self.nb_hands_in_previous_frame = 0
         if not self.solo: self.single_hand_count = 0
-
-        #if use_handedness_average:
-            # handedness_avg: for more robustness, instead of using the last inferred handedness, we prefer to use the average 
-            # of the inferred handedness since use_previous_landmarks is True.
-            #self.handedness_avg = [mpu.HandednessAverage() for i in range(self.max_hands)]
         
 
     def create_pipeline(self):
@@ -513,8 +507,6 @@ class HandTracker:
                     ])
 
     def next_frame(self):
-        bag = {}
-        #self.fps.update()
         if use_yolo:
             yolo_detections = self.q_yolo_out.get()
             yolo_detections = yolo_detections.detections
@@ -547,8 +539,7 @@ class HandTracker:
                 self.hands = self.hands_from_landmarks
             else:
                 self.hands = hands
-
-        
+      
         if len(self.hands) == 0: # No hand detected
             self.nb_frames_no_hand += 1
         
