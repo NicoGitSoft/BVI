@@ -4,6 +4,7 @@ import depthai as dai
 from pathlib import Path
 from FPS import now
 import time, json, cv2
+from math import pi, floor, atan2, cos, sin
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -39,6 +40,66 @@ def warp_rect_img(rect_points, img, w, h):
         dst = np.array([(0, 0), (h, 0), (h, w)], dtype=np.float32)
         mat = cv2.getAffineTransform(src, dst)
         return cv2.warpAffine(img, mat, (w, h))
+
+def normalize_radians(angle):
+    return angle - 2 * pi * floor((angle + pi) / (2 * pi))
+
+def rotated_rect_to_points(cx, cy, w, h, rotation):
+    b = cos(rotation) * 0.5
+    a = sin(rotation) * 0.5
+    points = []
+    p0x = cx - a*h - b*w
+    p0y = cy + b*h - a*w
+    p1x = cx + a*h - b*w
+    p1y = cy - b*h - a*w
+    p2x = int(2*cx - p0x)
+    p2y = int(2*cy - p0y)
+    p3x = int(2*cx - p1x)
+    p3y = int(2*cy - p1y)
+    p0x, p0y, p1x, p1y = int(p0x), int(p0y), int(p1x), int(p1y)
+    return [[p0x,p0y], [p1x,p1y], [p2x,p2y], [p3x,p3y]]
+
+def hand_landmarks_to_rect(hand):
+    # Calculates the ROI for the next frame from the current hand landmarks
+    id_wrist = 0
+    id_index_mcp = 5
+    id_middle_mcp = 9
+    id_ring_mcp =13
+    
+    lms_xy =  hand.landmarks[:,:2]
+    # print(lms_xy)
+    # Compute rotation
+    x0, y0 = lms_xy[id_wrist]
+    x1, y1 = 0.25 * (lms_xy[id_index_mcp] + lms_xy[id_ring_mcp]) + 0.5 * lms_xy[id_middle_mcp]
+    rotation = 0.5 * pi - atan2(y0 - y1, x1 - x0)
+    rotation = normalize_radians(rotation)
+    # Now we work only on a subset of the landmarks
+    ids_for_bounding_box = [0, 1, 2, 3, 5, 6, 9, 10, 13, 14, 17, 18]
+    lms_xy = lms_xy[ids_for_bounding_box]
+    # Find center of the boundaries of landmarks
+    axis_aligned_center = 0.5 * (np.min(lms_xy, axis=0) + np.max(lms_xy, axis=0))
+    # Find boundaries of rotated landmarks
+    original = lms_xy - axis_aligned_center
+    c, s = np.cos(rotation), np.sin(rotation)
+    rot_mat = np.array(((c, -s), (s, c)))
+    projected = original.dot(rot_mat)
+    min_proj = np.min(projected, axis=0)
+    max_proj = np.max(projected, axis=0)
+    projected_center = 0.5 * (min_proj + max_proj)
+    center = rot_mat.dot(projected_center) + axis_aligned_center
+    width, height = max_proj - min_proj
+    next_hand = HandRegion()
+    next_hand.rect_w_a = next_hand.rect_h_a = 2 * max(width, height)
+    next_hand.rect_x_center_a = center[0] + 0.1 * height * s
+    next_hand.rect_y_center_a = center[1] - 0.1 * height * c
+    next_hand.rotation = rotation
+    next_hand.rect_points = rotated_rect_to_points(
+        next_hand.rect_x_center_a,
+        next_hand.rect_y_center_a,
+        next_hand.rect_w_a,
+        next_hand.rect_h_a,
+        next_hand.rotation)
+    return next_hand
 
 class HandTracker:
 
@@ -105,7 +166,7 @@ class HandTracker:
         self.pd_input_length = 128 # Palm detection
         # self.pd_input_length = 192 # Palm detection
         #self.anchors = mpu.generate_handtracker_anchors(self.pd_input_length, self.pd_input_length)
-        self.anchors = np.loadtxt( str(SCRIPT_DIR / "MediaPipeAnchors.txt"), dtype=np.float32) # Open anchors file
+        self.anchors = np.loadtxt( str(SCRIPT_DIR / "MediaPipeAnchors.txt"), dtype=np.float16) # Open anchors file
         #print("\n"*2, self.anchors, "\n"*2)
         # save anchors to file txt
         #np.savetxt(".\\BVI\\Scripts\\YoloHand\\anchors.txt", self.anchors, fmt="%f")
@@ -332,16 +393,6 @@ class HandTracker:
             # lm_z = hand.norm_landmarks[:,2:3] * hand.rect_w_a  / 0.4
             hand.landmarks = np.squeeze(cv2.transform(lm_xy, mat)).astype(np.int32)
 
-            # World landmarks
-            if self.use_world_landmarks:
-                hand.world_landmarks = np.array(inference.getLayerFp16("Identity_3_dense/BiasAdd/Add")).reshape(-1,3)
-            
-    #def spatial_loc_roi_from_palm_center(self, hand):
-    #    half_size = int(hand.pd_box[2] * self.frame_size / 2)
-    #    zone_size = max(half_size//2, 8)
-    #    rect_center = dai.Point2f(int(hand.pd_box[0]*self.frame_size) + half_size - zone_size//2 + self.crop_w, int(hand.pd_box[1]*self.frame_size) + half_size - zone_size//2 - self.pad_h)
-    #    rect_size = dai.Size2f(zone_size, zone_size)
-    #    return dai.Rect(rect_center, rect_size)
 
     def spatial_loc_roi_from_wrist_landmark(self, hand):
         zone_size = max(int(hand.rect_w_a / 10), 8)
@@ -431,12 +482,14 @@ class HandTracker:
                 nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
                 self.q_lm_in.send(nn_data)
                 if i == 0: lm_rtrip_time = now() # We measure only for the first hand
+            
             # Get inference results
             for i,h in enumerate(self.hands):
                 inference = self.q_lm_out.get()
-                if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
+                #if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
                 self.lm_postprocess(h, inference)
-            bag["lm_inference"] = len(self.hands)
+
+            # Filter hands with low confidence
             self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]
 
             if self.xyz:

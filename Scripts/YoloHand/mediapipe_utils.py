@@ -437,6 +437,7 @@ def hand_landmarks_to_rect(hand):
     center = rot_mat.dot(projected_center) + axis_aligned_center
     width, height = max_proj - min_proj
     next_hand = HandRegion()
+    print(next_hand)
     next_hand.rect_w_a = next_hand.rect_h_a = 2 * max(width, height)
     next_hand.rect_x_center_a = center[0] + 0.1 * height * s
     next_hand.rect_y_center_a = center[1] - 0.1 * height * c
