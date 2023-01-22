@@ -1,5 +1,4 @@
 import numpy as np
-import mediapipe_utils as mpu
 import depthai as dai
 from pathlib import Path
 from FPS import now
@@ -59,6 +58,74 @@ def rotated_rect_to_points(cx, cy, w, h, rotation):
     p0x, p0y, p1x, p1y = int(p0x), int(p0y), int(p1x), int(p1y)
     return [[p0x,p0y], [p1x,p1y], [p2x,p2y], [p3x,p3y]]
 
+def decode_bboxes(score_thresh, scores, bboxes, anchors, scale=128, best_only=False):
+    regions = []
+    scores = 1 / (1 + np.exp(-scores))
+    if best_only:
+        best_id = np.argmax(scores)
+        if scores[best_id] < score_thresh: return regions
+        det_scores = scores[best_id:best_id+1]
+        det_bboxes2 = bboxes[best_id:best_id+1]
+        det_anchors = anchors[best_id:best_id+1]
+    else:
+        detection_mask = scores > score_thresh
+        det_scores = scores[detection_mask]
+        if det_scores.size == 0: return regions
+        det_bboxes2 = bboxes[detection_mask]
+        det_anchors = anchors[detection_mask]
+    det_bboxes = det_bboxes2* np.tile(det_anchors[:,2:4], 9) / scale + np.tile(det_anchors[:,0:2],9)
+    det_bboxes[:,2:4] = det_bboxes[:,2:4] - det_anchors[:,0:2]
+    # box = [cx - w*0.5, cy - h*0.5, w, h]
+    det_bboxes[:,0:2] = det_bboxes[:,0:2] - det_bboxes[:,3:4] * 0.5
+    for i in range(det_bboxes.shape[0]):
+        score = det_scores[i]
+        box = det_bboxes[i,0:4]
+        if box[2] < 0 or box[3] < 0: continue
+        kps = []
+        for kp in range(7):
+            kps.append(det_bboxes[i,4+kp*2:6+kp*2])
+        regions.append(HandRegion(float(score), box, kps))
+    return regions
+
+def detections_to_rect(regions):
+    target_angle = pi * 0.5 # 90 = pi/2
+    for region in regions:
+        
+        region.rect_w = region.pd_box[2]
+        region.rect_h = region.pd_box[3]
+        region.rect_x_center = region.pd_box[0] + region.rect_w / 2
+        region.rect_y_center = region.pd_box[1] + region.rect_h / 2
+
+        x0, y0 = region.pd_kps[0] # wrist center
+        x1, y1 = region.pd_kps[2] # middle finger
+        rotation = target_angle - atan2(-(y1 - y0), x1 - x0)
+        region.rotation = normalize_radians(rotation)
+
+def rect_transformation(regions, w, h):
+    scale_x = 2.9
+    scale_y = 2.9
+    shift_x = 0
+    shift_y = -0.5
+    for region in regions:
+        width = region.rect_w
+        height = region.rect_h
+        rotation = region.rotation
+        if rotation == 0:
+            region.rect_x_center_a = (region.rect_x_center + width * shift_x) * w
+            region.rect_y_center_a = (region.rect_y_center + height * shift_y) * h
+        else:
+            x_shift = (w * width * shift_x * cos(rotation) - h * height * shift_y * sin(rotation)) #/ w
+            y_shift = (w * width * shift_x * sin(rotation) + h * height * shift_y * cos(rotation)) #/ h
+            region.rect_x_center_a = region.rect_x_center*w + x_shift
+            region.rect_y_center_a = region.rect_y_center*h + y_shift
+
+        # square_long: true
+        long_side = max(width * w, height * h)
+        region.rect_w_a = long_side * scale_x
+        region.rect_h_a = long_side * scale_y
+        region.rect_points = rotated_rect_to_points(region.rect_x_center_a, region.rect_y_center_a, region.rect_w_a, region.rect_h_a, region.rotation)
+
+
 def hand_landmarks_to_rect(hand):
     # Calculates the ROI for the next frame from the current hand landmarks
     id_wrist = 0
@@ -100,6 +167,20 @@ def hand_landmarks_to_rect(hand):
         next_hand.rect_h_a,
         next_hand.rotation)
     return next_hand
+
+class HandRegion:
+    def __init__(self, pd_score=None, pd_box=None, pd_kps=None):
+        self.pd_score = pd_score # Palm detection score 
+        self.pd_box = pd_box # Palm detection box [x, y, w, h] normalized
+        self.pd_kps = pd_kps # Palm detection keypoints
+
+    def get_rotated_world_landmarks(self):
+        world_landmarks_rotated = self.world_landmarks.copy()
+        sin_rot = sin(self.rotation)
+        cos_rot = cos(self.rotation)
+        rot_m = np.array([[cos_rot, sin_rot], [-sin_rot, cos_rot]])
+        world_landmarks_rotated[:,:2] = np.dot(world_landmarks_rotated[:,:2], rot_m)
+        return world_landmarks_rotated
 
 class HandTracker:
 
@@ -369,12 +450,11 @@ class HandTracker:
         scores = np.array(inference.getLayerFp16("classificators"), dtype=np.float16) # 896
         bboxes = np.array(inference.getLayerFp16("regressors"), dtype=np.float16).reshape((self.nb_anchors,18)) # 896x18
         # Decode bboxes
-        hands = mpu.decode_bboxes(self.pd_score_thresh, scores, bboxes, self.anchors, scale=self.pd_input_length, best_only=self.solo)
+        hands = decode_bboxes(self.pd_score_thresh, scores, bboxes, self.anchors, scale=self.pd_input_length, best_only=self.solo)
         # Non maximum suppression (not needed if solo)
-        mpu.detections_to_rect(hands)
-        mpu.rect_transformation(hands, self.frame_size, self.frame_size)
+        detections_to_rect(hands)
+        rect_transformation(hands, self.frame_size, self.frame_size)
         return hands
-
 
     def lm_postprocess(self, hand, inference):
         hand.lm_score = inference.getLayerFp16("Identity_1")[0]  
@@ -495,7 +575,7 @@ class HandTracker:
             if self.xyz:
                 self.query_xyz(self.spatial_loc_roi_from_wrist_landmark)
 
-            self.hands_from_landmarks = [mpu.hand_landmarks_to_rect(h) for h in self.hands]
+            self.hands_from_landmarks = [hand_landmarks_to_rect(h) for h in self.hands]
             
             nb_hands = len(self.hands)
 
