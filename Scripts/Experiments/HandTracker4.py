@@ -2,7 +2,7 @@ import numpy as np
 import mediapipe_utils as mpu
 import depthai as dai
 from pathlib import Path
-from FPS import now
+#from FPS import now
 import time, json, cv2
 
 
@@ -347,12 +347,12 @@ class HandTracker:
             cfg = dai.SpatialLocationCalculatorConfig()
             cfg.setROIs(conf_datas)
             
-            spatial_rtrip_time = now()
+            #spatial_rtrip_time = now()
             self.q_spatial_config.send(cfg)
 
             # Receives spatial locations
             spatial_data = self.q_spatial_data.get().getSpatialLocations()
-            self.glob_spatial_rtrip_time += now() - spatial_rtrip_time
+            #self.glob_spatial_rtrip_time += now() - spatial_rtrip_time
             self.nb_spatial_requests += 1
             for i,sd in enumerate(spatial_data):
                 self.hands[i].xyz_zone =  [
@@ -417,11 +417,11 @@ class HandTracker:
                 nn_data = dai.NNData()   
                 nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
                 self.q_lm_in.send(nn_data)
-                if i == 0: lm_rtrip_time = now() # We measure only for the first hand
+                #if i == 0: lm_rtrip_time = now() # We measure only for the first hand
             # Get inference results
             for i,h in enumerate(self.hands):
                 inference = self.q_lm_out.get()
-                if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
+                #if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
                 self.lm_postprocess(h, inference)
             bag["lm_inference"] = len(self.hands)
             self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]

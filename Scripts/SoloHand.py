@@ -1,9 +1,9 @@
 import numpy as np
 import depthai as dai
 from pathlib import Path
-
 import time, json, cv2
 from math import pi, floor, atan2, cos, sin
+from scipy.special import expit
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -12,7 +12,7 @@ PALM_DETECTION_MODEL = str(SCRIPT_DIR / "Models/OpenVINO/Hands/palm_detection_sh
 LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/OpenVINO/Hands/hand_landmark_lite_sh4.blob")
 #LANDMARK_MODEL_SPARSE = str(SCRIPT_DIR / "Models/OpenVINO/Hands/hand_landmark_sparse_sh4.blob")
 
-use_yolo = False
+use_yolo = True
 
 if use_yolo:
     YOLO_MODEL = str(SCRIPT_DIR / "Models/OpenVINO/BVIyolov7tiny_openvino_2021.4_6shave.blob")
@@ -60,7 +60,7 @@ def rotated_rect_to_points(cx, cy, w, h, rotation):
 
 def decode_bboxes(score_thresh, scores, bboxes, anchors, scale=128, best_only=False):
     regions = []
-    scores = 1 / (1 + np.exp(-scores))
+    scores = expit(scores) # 1 / (1 + np.exp(-scores))
     if best_only:
         best_id = np.argmax(scores)
         if scores[best_id] < score_thresh: return regions
@@ -200,17 +200,16 @@ class HandTracker:
                 trace=0, 
                 ):
 
-        self.pd_model = pd_model
+        self.pd_model = PALM_DETECTION_MODEL
         print(f"Palm detection blob : {self.pd_model}")
-
         self.lm_model = LANDMARK_MODEL_LITE
         print(f"Landmark blob       : {self.lm_model}")
 
-        self.pd_score_thresh = pd_score_thresh
-        self.pd_nms_thresh = pd_nms_thresh
-        self.use_lm = use_lm
-        self.lm_score_thresh = lm_score_thresh
-        self.solo = solo
+        self.pd_score_thresh = 0.5
+        self.pd_nms_thresh = 0.3
+        self.use_lm = True
+        self.lm_score_thresh = 0.5
+        self.solo = True
 
         self.lm_nb_threads = 1
         print("In Solo mode, # of landmark model threads is forced to 1")
@@ -218,13 +217,13 @@ class HandTracker:
         self.max_hands = 1
         
         self.xyz = True
-        self.crop = crop 
-        self.use_world_landmarks = use_world_landmarks
-        self.internal_fps = internal_fps     
-        self.stats = stats
-        self.trace = trace
-        self.use_handedness_average = use_handedness_average
-        self.single_hand_tolerance_thresh = single_hand_tolerance_thresh
+        self.crop = True 
+        self.use_world_landmarks = False
+        self.internal_fps = 23     
+        self.stats = False
+        self.trace = 0
+        self.use_handedness_average = True
+        self.single_hand_tolerance_thresh = True
 
         self.input_type = "rgb"
 
@@ -241,7 +240,6 @@ class HandTracker:
 
         print(f"Internal camera image size: {self.img_w} x {self.img_h} - crop_w:{self.crop_w} pad_h: {self.pad_h}")
         
-
         # Create SSD anchors 
         self.pd_input_length = 128 # Palm detection
         # self.pd_input_length = 192 # Palm detection
@@ -264,18 +262,12 @@ class HandTracker:
             self.q_yolo_out = self.device.getOutputQueue(name="yolo_out", maxSize=4, blocking=False)
 
         self.q_video = self.device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
-        self.q_pd_out = self.device.getOutputQueue(name="pd_out", maxSize=1, blocking=False)
+        self.q_pd_out = self.device.getOutputQueue(name="pd_out", maxSize=2, blocking=False)
         self.q_manip_cfg = self.device.getInputQueue(name="manip_cfg")
-
-
         self.q_lm_out = self.device.getOutputQueue(name="lm_out", maxSize=2, blocking=False)
         self.q_lm_in = self.device.getInputQueue(name="lm_in")
-
-        self.q_spatial_data = self.device.getOutputQueue(name="spatial_data_out", maxSize=4, blocking=False)
-        self.q_spatial_config = self.device.getInputQueue("spatial_calc_config_in")
         self.q_stereo_out = self.device.getOutputQueue(name="stereo_out", maxSize=4, blocking=False)
 
-        #self.fps = FPS()
 
         self.nb_frames_pd_inference = 0
         self.nb_frames_lm_inference = 0
@@ -310,8 +302,7 @@ class HandTracker:
 
         # ImageManip
         manip = pipeline.createImageManip()
-        manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)
-        manip.setWaitForConfigInput(True)
+        manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)      
         manip.inputImage.setQueueSize(1)
         manip.inputImage.setBlocking(False)
         cam.preview.link(manip.inputImage)
@@ -329,15 +320,6 @@ class HandTracker:
         cam_out.input.setBlocking(False)
         cam.video.link(cam_out.input)
 
-
-        print("Creating MonoCameras, Stereo and SpatialLocationCalculator nodes...")
-        # For now, RGB needs fixed focus to properly align with depth.
-        # The value used during calibration should be used here
-        calib_data = self.device.readCalibration()
-        calib_lens_pos = calib_data.getLensPosition(dai.CameraBoardSocket.RGB)
-        print(f"RGB calibration lens position: {calib_lens_pos}")
-        cam.initialControl.setManualFocus(calib_lens_pos)
-
         mono_resolution = dai.MonoCameraProperties.SensorResolution.THE_400_P
         left = pipeline.createMonoCamera()
         left.setBoardSocket(dai.CameraBoardSocket.LEFT)
@@ -350,39 +332,17 @@ class HandTracker:
         right.setFps(self.internal_fps)
 
         stereo = pipeline.createStereoDepth()
-        
-        stereo.setConfidenceThreshold(230)
-        # LR-check is required for depth alignment
+        stereo.initialConfig.setConfidenceThreshold(230)
         stereo.setLeftRightCheck(True)
         stereo.setDepthAlign(dai.CameraBoardSocket.RGB)
         stereo.setOutputSize(left.getResolutionWidth(), right.getResolutionHeight())
-        stereo.setSubpixel(False)  # subpixel True -> latency
         stereo.setDefaultProfilePreset(dai.node.StereoDepth.PresetMode.HIGH_DENSITY)
-
         setero_out = pipeline.createXLinkOut()
         setero_out.setStreamName("stereo_out")
         stereo.depth.link(setero_out.input)
-        
-        spatial_location_calculator = pipeline.createSpatialLocationCalculator()
-        spatial_location_calculator.setWaitForConfigInput(True)
-        spatial_location_calculator.inputDepth.setBlocking(False)
-        spatial_location_calculator.inputDepth.setQueueSize(1)
-
-        spatial_data_out = pipeline.createXLinkOut()
-        spatial_data_out.setStreamName("spatial_data_out")
-        spatial_data_out.input.setQueueSize(1)
-        spatial_data_out.input.setBlocking(False)
-
-        spatial_calc_config_in = pipeline.createXLinkIn()
-        spatial_calc_config_in.setStreamName("spatial_calc_config_in")
 
         left.out.link(stereo.left)
         right.out.link(stereo.right)    
-
-        stereo.depth.link(spatial_location_calculator.inputDepth)
-
-        spatial_location_calculator.out.link(spatial_data_out.input)
-        spatial_calc_config_in.out.link(spatial_location_calculator.inputConfig)
 
         # Define palm detection model
         print("Creating Palm Detection Neural Network...")
@@ -436,12 +396,12 @@ class HandTracker:
             yolo.out.link(yolo_out.input)           # yolo.out -> yolo_out.input
 
         print("Pipeline created.")
-        return pipeline        
+        return pipeline      
    
 
     def pd_postprocess(self, inference):
         # print(inference.getAllLayerNames())
-        scores = np.array(inference.getLayerFp16("classificators"), dtype=np.float16) # 896
+        scores = np.array(inference.getLayerFp16("classificators"), dtype=np.float64) # 896
         bboxes = np.array(inference.getLayerFp16("regressors"), dtype=np.float16).reshape((self.nb_anchors,18)) # 896x18
         # Decode bboxes
         hands = decode_bboxes(self.pd_score_thresh, scores, bboxes, self.anchors, scale=self.pd_input_length, best_only=self.solo)
@@ -468,47 +428,9 @@ class HandTracker:
             hand.landmarks = np.squeeze(cv2.transform(lm_xy, mat)).astype(np.int32)
 
 
-    def spatial_loc_roi_from_wrist_landmark(self, hand):
-        zone_size = max(int(hand.rect_w_a / 10), 8)
-        rect_center = dai.Point2f(*(hand.landmarks[0]-np.array((zone_size//2 - self.crop_w, zone_size//2 + self.pad_h))))
-        rect_size = dai.Size2f(zone_size, zone_size)
-        return dai.Rect(rect_center, rect_size)
-
-    def query_xyz(self, spatial_loc_roi_func):
-        conf_datas = []
-        for h in self.hands:
-            conf_data = dai.SpatialLocationCalculatorConfigData()
-            conf_data.depthThresholds.lowerThreshold = 100
-            conf_data.depthThresholds.upperThreshold = 10000
-            conf_data.roi = spatial_loc_roi_func(h)
-            conf_datas.append(conf_data)
-        if len(conf_datas) > 0:
-            cfg = dai.SpatialLocationCalculatorConfig()
-            cfg.setROIs(conf_datas)
-            
-            #spatial_rtrip_time = now()
-            self.q_spatial_config.send(cfg)
-
-            # Receives spatial locations
-            spatial_data = self.q_spatial_data.get().getSpatialLocations()
-            #self.glob_spatial_rtrip_time += now() - spatial_rtrip_time
-            self.nb_spatial_requests += 1
-            for i,sd in enumerate(spatial_data):
-                self.hands[i].xyz_zone =  [
-                    int(sd.config.roi.topLeft().x) - self.crop_w,
-                    int(sd.config.roi.topLeft().y),
-                    int(sd.config.roi.bottomRight().x) - self.crop_w,
-                    int(sd.config.roi.bottomRight().y)
-                    ]
-                self.hands[i].xyz = np.array([
-                    sd.spatialCoordinates.x,
-                    sd.spatialCoordinates.y,
-                    sd.spatialCoordinates.z
-                    ])
-
     def next_frame(self):
 
-        depht_frame = self.q_stereo_out.get().getFrame()
+        depth_frame = self.q_stereo_out.get().getFrame()
 
         if use_yolo:
             yolo_detections = self.q_yolo_out.get()
@@ -548,11 +470,9 @@ class HandTracker:
             # Hand landmarks, send requests
             for i,h in enumerate(self.hands):
                 img_hand = warp_rect_img(h.rect_points, square_frame, self.lm_input_length, self.lm_input_length)
-                cv2.imshow("img_hand", img_hand)
                 nn_data = dai.NNData()   
                 nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
                 self.q_lm_in.send(nn_data)
-                #if i == 0: lm_rtrip_time = now() # We measure only for the first hand
             
             # Get inference results
             for i,h in enumerate(self.hands):
@@ -563,10 +483,7 @@ class HandTracker:
             # Filter hands with low confidence
             self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]
 
-            if self.xyz:
-                self.query_xyz(self.spatial_loc_roi_from_wrist_landmark)
-
-            self.hands_from_landmarks = [hand_landmarks_to_rect(h) for h in self.hands]
+            self.hands_from_landmarks = [hand_landmarks_to_rect(hand) for hand in self.hands]
             
             nb_hands = len(self.hands)
 
@@ -579,10 +496,8 @@ class HandTracker:
             self.use_previous_landmarks = True
             if nb_hands == 0:
                 self.use_previous_landmarks = False
-            elif not self.solo and nb_hands == 1:
-                    if self.single_hand_count >= self.single_hand_tolerance_thresh:
-                        self.use_previous_landmarks = False
-                        self.single_hand_count = 0
+            else:
+                cv2.imshow("img_hand", img_hand)
             
             self.nb_hands_in_previous_frame = nb_hands           
             
@@ -600,16 +515,45 @@ class HandTracker:
                 # Set the hand label
                 hand.label = "right" if hand.handedness > 0.5 else "left"       
 
-
         if use_yolo:
-            return video_frame, self.hands, yolo_detections, labels, width, height, depht_frame
+            return video_frame, self.hands, yolo_detections, labels, width, height, depth_frame
         else:
-            return video_frame, self.hands, self.img_w, self.img_h, depht_frame
+            return video_frame, self.hands, self.img_w, self.img_h, depth_frame
 
+
+###################################################################
+# Función que crea una ROI a partir de una coordenada y un radio DELTA
+def ROI(COORDINATE, DELTA):
+    x, y = COORDINATE
+    x1 = x - DELTA
+    x2 = x + DELTA
+    y1 = y - DELTA
+    y2 = y + DELTA
+    return x1, x2, y1, y2
+
+# Función que calcula el promedio de los valores de profundidad de un ROI en metros
+def AverageDepth(ROI, depthFrame):
+    x1, x2, y1, y2 = ROI
+    depth = depthFrame[y1:y2, x1:x2]
+    return np.nanmean(depth)/1000
+
+# Coordenadas de los vertices un bounding box
+def Vertices(detection):        
+    x1 = int(detection.xmin * width)
+    x2 = int(detection.xmax * width)
+    y1 = int(detection.ymin * height)
+    y2 = int(detection.ymax * height)
+    return x1, x2, y1, y2
+
+# Coordenada del centro de un bounding box
+def Center(x1, x2, y1, y2):
+    x = int((x1 + x2) / 2)
+    y = int((y1 + y2) / 2)
+    return x, y
 
 ##################### Inicialización de objetos #####################
 tracker = HandTracker(xyz=True, solo=True, crop=True)
-
+DELTA_DOLL = 30
 ##################### Bucle principal #####################
 while True:
     if use_yolo:
@@ -617,11 +561,23 @@ while True:
     else:
         frame, hands, width, height, depthFrame = tracker.next_frame()
 
+    if use_yolo:
+        if len(yoloDetections) > 0:
+            for detection in yoloDetections:
+                x1, x2, y1, y2 = Vertices(detection)
+                label = labels[detection.label]
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+                cv2.putText(frame, label, (x1, y1), cv2.FONT_HERSHEY_TRIPLEX, 0.4, (255, 0, 0))  
+
     x_center, y_center = (width//2, height//2) # Coordenadas del centro de la imagen
     x_ref, y_ref = (x_center, y_center) # Usar coordenadas del centro de la imagen como referencia en primera instancia
     if len(hands) > 0: # Si se detecta la mano del usuario, cambiar la referencia a la punta del dedo índice
         x_doll, y_doll = hands[0].landmarks[0,:2] # Coordenadas de la muñeca
-        
+        dollROI = ROI((x_doll, y_doll), DELTA_DOLL) # ROI de la muñeca
+        dollDistance = AverageDepth(dollROI, depthFrame) # Distancia de la muñeca a la cámara
+        print(dollDistance, end='\r')
+        # mostrar rectangulo de la muñeca
+        cv2.rectangle(frame, (dollROI[0], dollROI[2]), (dollROI[1], dollROI[3]), (0, 255, 0), 2)
         cv2.circle(frame, (x_doll, y_doll), 5, (0, 0, 255), -1) # Dibujar un círculo en la muñeca
     cv2.imshow("frame", frame)
     # Salir del programa si alguna de estas teclas son presionadas {ESC, SPACE, q}

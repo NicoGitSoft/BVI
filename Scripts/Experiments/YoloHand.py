@@ -1,4 +1,4 @@
-from HandTracker4 import HandTracker
+from HandTracker5 import HandTracker
 import numpy as np
 import scipy.io as sio
 import cv2, serial, time, math, os
