@@ -161,14 +161,15 @@ LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/Hands Models/hand_landmark_lite_s
 YOLO_MODEL = str(SCRIPT_DIR / "Models/BVI Models/best3_openvino_2021.4_6shave.blob")
 YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 
-class HandTracker:
+class YoloHandTracker:
     def __init__(self,
         pd_model=PALM_DETECTION_MODEL,
         ml_model=LANDMARK_MODEL_LITE,
         yolo_model=YOLO_MODEL,
         yolo_configurations=YOLO_CONFIG,
         use_yolo=True,
-        temperature_sensing = True, 
+        use_hand=True,
+        temperature_sensing=False, 
         pd_score_thresh=0.5,
         pd_nms_thresh=0.3,
         use_lm=True,
@@ -186,11 +187,14 @@ class HandTracker:
         ):
 
         self.temperature_sensing = temperature_sensing
-        if temperature_sensing: 
-            print("Temperature Sensing Enabled")
+        if temperature_sensing: print("Temperature Sensing Enabled")
+
+        self.use_hand = use_hand
+        if use_hand: print("Hand Tracking Enabled")
 
         self.use_yolo = use_yolo
         if use_yolo:
+            print("Yolo Enabled")
             self.yolo_model = yolo_model
             self.yolo_configurations = yolo_configurations
             print(f"YoloModel blob          : {self.yolo_model}")
@@ -250,11 +254,12 @@ class HandTracker:
 
         # Define data queues
         self.q_video = self.device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
-        self.q_pd_out = self.device.getOutputQueue(name="pd_out", maxSize=2, blocking=False)
-        self.q_manip_cfg = self.device.getInputQueue(name="manip_cfg")
-        self.q_lm_out = self.device.getOutputQueue(name="lm_out", maxSize=2, blocking=False)
-        self.q_lm_in = self.device.getInputQueue(name="lm_in")
         self.q_stereo_out = self.device.getOutputQueue(name="stereo_out", maxSize=4, blocking=False)
+        if self.use_hand:
+            self.q_pd_out = self.device.getOutputQueue(name="pd_out", maxSize=2, blocking=False)
+            self.q_manip_cfg = self.device.getInputQueue(name="manip_cfg")
+            self.q_lm_out = self.device.getOutputQueue(name="lm_out", maxSize=2, blocking=False)
+            self.q_lm_in = self.device.getInputQueue(name="lm_in")
         if self.use_yolo:
             self.q_yolo_out = self.device.getOutputQueue(name="yolo_out", maxSize=4, blocking=False)
         if self.temperature_sensing:
@@ -288,21 +293,8 @@ class HandTracker:
         cam.setInterleaved(False)
         cam.setIspScale(self.scale_nd[0], self.scale_nd[1])
         cam.setFps(self.internal_fps)
-
-        # ImageManip
-        manip = pipeline.createImageManip()
-        manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)      
-        manip.inputImage.setQueueSize(1)
-        manip.inputImage.setBlocking(False)
-        cam.preview.link(manip.inputImage)
-
         cam.setVideoSize(self.frame_size, self.frame_size)
         cam.setPreviewSize(self.img_w, self.img_h)
-                
-        manip_cfg_in = pipeline.createXLinkIn()
-        manip_cfg_in.setStreamName("manip_cfg")
-        manip_cfg_in.out.link(manip.inputConfig)
-
         cam_out = pipeline.createXLinkOut()
         cam_out.setStreamName("cam_out")
         cam_out.input.setQueueSize(1)
@@ -329,40 +321,51 @@ class HandTracker:
         setero_out = pipeline.createXLinkOut()
         setero_out.setStreamName("stereo_out")
         stereo.depth.link(setero_out.input)
-
         left.out.link(stereo.left)
-        right.out.link(stereo.right)    
+        right.out.link(stereo.right)
 
-        # Define palm detection model
-        print("Creating Palm Detection Neural Network...")
-        pd_nn = pipeline.createNeuralNetwork()
-        pd_nn.setBlobPath(self.pd_model)
-        # Palm detection input        
+        if self.use_hand:
+            # ImageManip
+            manip = pipeline.createImageManip()
+            manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)      
+            manip.inputImage.setQueueSize(1)
+            manip.inputImage.setBlocking(False)
+            cam.preview.link(manip.inputImage)
+            manip_cfg_in = pipeline.createXLinkIn()
+            manip_cfg_in.setStreamName("manip_cfg")
+            manip_cfg_in.out.link(manip.inputConfig)
 
-        # Specify that network takes latest arriving frame in non-blocking manner
-        pd_nn.input.setQueueSize(1)
-        pd_nn.input.setBlocking(False)
-        manip.out.link(pd_nn.input)
+            # Define palm detection model
+            print("Creating Palm Detection Neural Network...")
+            pd_nn = pipeline.createNeuralNetwork()
+            pd_nn.setBlobPath(self.pd_model)
 
-        # Palm detection output
-        pd_out = pipeline.createXLinkOut()
-        pd_out.setStreamName("pd_out")
-        pd_nn.out.link(pd_out.input)
+            # Specify that network takes latest arriving frame in non-blocking manner
+            pd_nn.input.setQueueSize(1)
+            pd_nn.input.setBlocking(False)
+            manip.out.link(pd_nn.input)
+
+            # Palm detection output
+            pd_out = pipeline.createXLinkOut()
+            pd_out.setStreamName("pd_out")
+            pd_nn.out.link(pd_out.input)
         
-         # Define hand landmark model
-        print(f"Creating Hand Landmark Neural Network ({'1 thread' if self.lm_nb_threads == 1 else '2 threads'})...")         
-        lm_nn = pipeline.createNeuralNetwork()
-        lm_nn.setBlobPath(self.lm_model)
-        lm_nn.setNumInferenceThreads(self.lm_nb_threads)
-        # Hand landmark input
-        self.lm_input_length = 224
-        lm_in = pipeline.createXLinkIn()
-        lm_in.setStreamName("lm_in")
-        lm_in.out.link(lm_nn.input)
-        # Hand landmark output
-        lm_out = pipeline.createXLinkOut()
-        lm_out.setStreamName("lm_out")
-        lm_nn.out.link(lm_out.input)
+            # Define hand landmark model
+            print(f"Creating Hand Landmark Neural Network ({'1 thread' if self.lm_nb_threads == 1 else '2 threads'})...")         
+            lm_nn = pipeline.createNeuralNetwork()
+            lm_nn.setBlobPath(self.lm_model)
+            lm_nn.setNumInferenceThreads(self.lm_nb_threads)
+
+            # Hand landmark input
+            self.lm_input_length = 224
+            lm_in = pipeline.createXLinkIn()
+            lm_in.setStreamName("lm_in")
+            lm_in.out.link(lm_nn.input)
+            
+            # Hand landmark output
+            lm_out = pipeline.createXLinkOut()
+            lm_out.setStreamName("lm_out")
+            lm_nn.out.link(lm_out.input)
         
         if self.use_yolo:
             # YoloDetectionNetwork
@@ -425,8 +428,9 @@ class HandTracker:
 
 
     def next_frame(self):
-
         self.depth_frame = self.q_stereo_out.get().getFrame()
+        in_video = self.q_video.get()
+        video_frame = in_video.getCvFrame()
 
         if self.temperature_sensing:
             self.chipTemperature = self.qSysInfo.get().chipTemperature.average
@@ -440,84 +444,86 @@ class HandTracker:
             self.yolo_detections = []
             self.yolo_labels = []
 
-        if not self.use_previous_landmarks:
-            # Send image manip config to the device
-            cfg = dai.ImageManipConfig()
-            # We prepare the input to the Palm detector
-            cfg.setResizeThumbnail(self.pd_input_length, self.pd_input_length)
-            self.q_manip_cfg.send(cfg)
-
-        in_video = self.q_video.get()
-        video_frame = in_video.getCvFrame()
-        if self.pad_h:
-            square_frame = cv2.copyMakeBorder(video_frame, self.pad_h, self.pad_h, self.pad_w, self.pad_w, cv2.BORDER_CONSTANT)
+        if not self.use_hand:
+            self.hands = []
         else:
-            square_frame = video_frame
+            if not self.use_previous_landmarks:
+                # Send image manip config to the device
+                cfg = dai.ImageManipConfig()
+                # We prepare the input to the Palm detector
+                cfg.setResizeThumbnail(self.pd_input_length, self.pd_input_length)
+                self.q_manip_cfg.send(cfg)
 
-        # Get palm detection
-        if self.use_previous_landmarks:
-            self.hands = self.hands_from_landmarks # Use previous landmarks
-        else: # Use palm detection
-            inference = self.q_pd_out.get()
-            hands = self.pd_postprocess(inference)
-            self.nb_frames_pd_inference += 1
-            if not self.solo and self.nb_hands_in_previous_frame == 1 and len(hands) <= 1:
-                self.hands = self.hands_from_landmarks
+
+            if self.pad_h:
+                square_frame = cv2.copyMakeBorder(video_frame, self.pad_h, self.pad_h, self.pad_w, self.pad_w, cv2.BORDER_CONSTANT)
             else:
-                self.hands = hands
-      
-        if len(self.hands) == 0: # No hand detected
-            self.nb_frames_no_hand += 1
+                square_frame = video_frame
+
+            # Get palm detection
+            if self.use_previous_landmarks:
+                self.hands = self.hands_from_landmarks # Use previous landmarks
+            else: # Use palm detection
+                inference = self.q_pd_out.get()
+                hands = self.pd_postprocess(inference)
+                self.nb_frames_pd_inference += 1
+                if not self.solo and self.nb_hands_in_previous_frame == 1 and len(hands) <= 1:
+                    self.hands = self.hands_from_landmarks
+                else:
+                    self.hands = hands
         
-        if self.use_lm:
-            nb_lm_inferences = len(self.hands)
-            # Hand landmarks, send requests
-            for i,h in enumerate(self.hands):
-                img_hand = warp_rect_img(h.rect_points, square_frame, self.lm_input_length, self.lm_input_length)
-                nn_data = dai.NNData()   
-                nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
-                self.q_lm_in.send(nn_data)
+            if len(self.hands) == 0: # No hand detected
+                self.nb_frames_no_hand += 1
             
-            # Get inference results
-            for i,h in enumerate(self.hands):
-                inference = self.q_lm_out.get()
-                #if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
-                self.lm_postprocess(h, inference)
+            if self.use_lm:
+                nb_lm_inferences = len(self.hands)
+                # Hand landmarks, send requests
+                for i,h in enumerate(self.hands):
+                    img_hand = warp_rect_img(h.rect_points, square_frame, self.lm_input_length, self.lm_input_length)
+                    nn_data = dai.NNData()   
+                    nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
+                    self.q_lm_in.send(nn_data)
+                
+                # Get inference results
+                for i,h in enumerate(self.hands):
+                    inference = self.q_lm_out.get()
+                    #if i == 0: self.glob_lm_rtrip_time += now() - lm_rtrip_time
+                    self.lm_postprocess(h, inference)
 
-            # Filter hands with low confidence
-            self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]
+                # Filter hands with low confidence
+                self.hands = [ h for h in self.hands if h.lm_score > self.lm_score_thresh]
 
-            self.hands_from_landmarks = [hand_landmarks_to_rect(hand) for hand in self.hands]
-            
-            nb_hands = len(self.hands)
+                self.hands_from_landmarks = [hand_landmarks_to_rect(hand) for hand in self.hands]
+                
+                nb_hands = len(self.hands)
 
-            # Stats
-            if nb_lm_inferences: self.nb_frames_lm_inference += 1
-            self.nb_lm_inferences += nb_lm_inferences
-            self.nb_failed_lm_inferences += nb_lm_inferences - nb_hands 
-            if self.use_previous_landmarks: self.nb_frames_lm_inference_after_landmarks_ROI += 1
+                # Stats
+                if nb_lm_inferences: self.nb_frames_lm_inference += 1
+                self.nb_lm_inferences += nb_lm_inferences
+                self.nb_failed_lm_inferences += nb_lm_inferences - nb_hands 
+                if self.use_previous_landmarks: self.nb_frames_lm_inference_after_landmarks_ROI += 1
 
-            self.use_previous_landmarks = True
-            if nb_hands == 0:
-                self.use_previous_landmarks = False
-            else:
-                cv2.imshow("img_hand", img_hand)
-            
-            self.nb_hands_in_previous_frame = nb_hands           
-            
-            for hand in self.hands:
-                # If we added padding to make the image square, we need to remove this padding from landmark coordinates and from rect_points
-                if self.pad_h > 0:
-                    hand.landmarks[:,1] -= self.pad_h
-                    for i in range(len(hand.rect_points)):
-                        hand.rect_points[i][1] -= self.pad_h
-                if self.pad_w > 0:
-                    hand.landmarks[:,0] -= self.pad_w
-                    for i in range(len(hand.rect_points)):
-                        hand.rect_points[i][0] -= self.pad_w
+                self.use_previous_landmarks = True
+                if nb_hands == 0:
+                    self.use_previous_landmarks = False
+                else:
+                    cv2.imshow("img_hand", img_hand)
+                
+                self.nb_hands_in_previous_frame = nb_hands           
+                
+                for hand in self.hands:
+                    # If we added padding to make the image square, we need to remove this padding from landmark coordinates and from rect_points
+                    if self.pad_h > 0:
+                        hand.landmarks[:,1] -= self.pad_h
+                        for i in range(len(hand.rect_points)):
+                            hand.rect_points[i][1] -= self.pad_h
+                    if self.pad_w > 0:
+                        hand.landmarks[:,0] -= self.pad_w
+                        for i in range(len(hand.rect_points)):
+                            hand.rect_points[i][0] -= self.pad_w
 
-                # Set the hand label
-                hand.label = "right" if hand.handedness > 0.5 else "left"
+                    # Set the hand label
+                    hand.label = "right" if hand.handedness > 0.5 else "left"
         
         return video_frame, self.hands, self.yolo_detections, self.yolo_labels, self.img_h, self.img_w, self.depth_frame, self.chipTemperature
 
@@ -637,8 +643,10 @@ YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 ##################### Inicialización de objetos #####################
 temperature_sensing = False
 use_yolo = False
-tracker = HandTracker(
+use_hand = False
+tracker = YoloHandTracker(
     temperature_sensing = temperature_sensing,
+    use_hand = use_hand,
     use_yolo = use_yolo,
     yolo_model = MY_YOLO_MODEL,
     yolo_configurations = YOLO_CONFIG,
