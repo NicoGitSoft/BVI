@@ -507,13 +507,13 @@ class HandTracker:
                     ])
 
     def next_frame(self):
+
+        depht_frame = self.q_stereo_out.get().getFrame()
+
         if use_yolo:
             yolo_detections = self.q_yolo_out.get()
             yolo_detections = yolo_detections.detections
 
-        depht_frame = self.q_stereo_out.get().getFrame()
-
-        #if self.input_type == "rgb":
         if not self.use_previous_landmarks:
             # Send image manip config to the device
             cfg = dai.ImageManipConfig()
@@ -600,35 +600,11 @@ class HandTracker:
                 # Set the hand label
                 hand.label = "right" if hand.handedness > 0.5 else "left"       
 
-        #else: # not use_lm
-        #    if self.xyz:
-        #        self.query_xyz(self.spatial_loc_roi_from_palm_center)
 
         if use_yolo:
             return video_frame, self.hands, yolo_detections, labels, width, height, depht_frame
         else:
             return video_frame, self.hands, self.img_w, self.img_h, depht_frame
-
-
-    def exit(self):
-        self.device.close()
-        # Print some stats
-        if self.stats:
-            nb_frames = self.fps.nb_frames()
-            print(f"FPS : {self.fps.get_global():.1f} f/s (# frames = {nb_frames})")
-            print(f"# frames w/ no hand           : {self.nb_frames_no_hand} ({100*self.nb_frames_no_hand/nb_frames:.1f}%)")
-            print(f"# frames w/ palm detection    : {self.nb_frames_pd_inference} ({100*self.nb_frames_pd_inference/nb_frames:.1f}%)")
-            if self.use_lm:
-                print(f"# frames w/ landmark inference : {self.nb_frames_lm_inference} ({100*self.nb_frames_lm_inference/nb_frames:.1f}%)- # after palm detection: {self.nb_frames_lm_inference - self.nb_frames_lm_inference_after_landmarks_ROI} - # after landmarks ROI prediction: {self.nb_frames_lm_inference_after_landmarks_ROI}")
-                if not self.solo:
-                    print(f"On frames with at least one landmark inference, average number of landmarks inferences/frame: {self.nb_lm_inferences/self.nb_frames_lm_inference:.2f}")
-                print(f"# lm inferences: {self.nb_lm_inferences} - # failed lm inferences: {self.nb_failed_lm_inferences} ({100*self.nb_failed_lm_inferences/self.nb_lm_inferences:.1f}%)")
-            if self.input_type != "rgb":
-                print(f"Palm detection round trip            : {self.glob_pd_rtrip_time/self.nb_frames_pd_inference*1000:.1f} ms")
-                if self.use_lm and self.nb_lm_inferences:
-                    print(f"Hand landmark round trip             : {self.glob_lm_rtrip_time/self.nb_lm_inferences*1000:.1f} ms")
-            if self.xyz:
-                print(f"Spatial location requests round trip : {self.glob_spatial_rtrip_time/self.nb_spatial_requests*1000:.1f} ms")           
 
 
 ##################### Inicialización de objetos #####################
@@ -644,7 +620,8 @@ while True:
     x_center, y_center = (width//2, height//2) # Coordenadas del centro de la imagen
     x_ref, y_ref = (x_center, y_center) # Usar coordenadas del centro de la imagen como referencia en primera instancia
     if len(hands) > 0: # Si se detecta la mano del usuario, cambiar la referencia a la punta del dedo índice
-        x_doll, y_doll = hands[0].landmarks[0,:2] # Coordenadas de la muñeca
+        x_doll, y_doll = hands[0].landmarks[,:2] # Coordenadas de la muñeca
+        
         cv2.circle(frame, (x_doll, y_doll), 5, (0, 0, 255), -1) # Dibujar un círculo en la muñeca
     cv2.imshow("frame", frame)
     # Salir del programa si alguna de estas teclas son presionadas {ESC, SPACE, q}
