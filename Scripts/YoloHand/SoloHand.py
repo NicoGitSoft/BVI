@@ -34,6 +34,12 @@ if use_yolo:
 def to_planar(arr: np.ndarray, shape: tuple) -> np.ndarray:
     return cv2.resize(arr, shape).transpose(2,0,1)#.flatten()
 
+def warp_rect_img(rect_points, img, w, h):
+        src = np.array(rect_points[1:], dtype=np.float32) # rect_points[0] is left bottom point !
+        dst = np.array([(0, 0), (h, 0), (h, w)], dtype=np.float32)
+        mat = cv2.getAffineTransform(src, dst)
+        return cv2.warpAffine(img, mat, (w, h))
+
 class HandTracker:
 
     def __init__(self, input_src=None,
@@ -376,11 +382,10 @@ class HandTracker:
                     ])
 
     def next_frame(self):
-        hand_label = None
         bag = {}
         #self.fps.update()
         if use_yolo:
-            yolodetections = self.q_yolo_out.get()
+            yolo_detections = self.q_yolo_out.get()
             yolo_detections = yolo_detections.detections
 
         depht_frame = self.q_stereo_out.get().getFrame()
@@ -402,8 +407,8 @@ class HandTracker:
 
         # Get palm detection
         if self.use_previous_landmarks:
-            self.hands = self.hands_from_landmarks
-        else:
+            self.hands = self.hands_from_landmarks # Use previous landmarks
+        else: # Use palm detection
             inference = self.q_pd_out.get()
             hands = self.pd_postprocess(inference)
             self.nb_frames_pd_inference += 1
@@ -412,13 +417,16 @@ class HandTracker:
             else:
                 self.hands = hands
 
-        if len(self.hands) == 0: self.nb_frames_no_hand += 1
+        
+        if len(self.hands) == 0: # No hand detected
+            self.nb_frames_no_hand += 1
         
         if self.use_lm:
             nb_lm_inferences = len(self.hands)
             # Hand landmarks, send requests
             for i,h in enumerate(self.hands):
-                img_hand = mpu.warp_rect_img(h.rect_points, square_frame, self.lm_input_length, self.lm_input_length)
+                img_hand = warp_rect_img(h.rect_points, square_frame, self.lm_input_length, self.lm_input_length)
+                cv2.imshow("img_hand", img_hand)
                 nn_data = dai.NNData()   
                 nn_data.setLayer("input_1", to_planar(img_hand, (self.lm_input_length, self.lm_input_length)))
                 self.q_lm_in.send(nn_data)
