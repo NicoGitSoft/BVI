@@ -156,33 +156,6 @@ class HandRegion:
         return world_landmarks_rotated
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 PALM_DETECTION_MODEL = str(SCRIPT_DIR / "Models/Hands Models/palm_detection_sh4.blob")
 LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/Hands Models/hand_landmark_lite_sh4.blob")
@@ -250,7 +223,7 @@ class YoloHandTracker:
         self.use_lm = use_lm
         self.lm_score_thresh = lm_score_thresh
         self.solo = solo
-        self.lm_nb_threads = 1      
+        self.lm_nb_threads = 2      
         self.max_hands = 1
         self.xyz = xyz
         self.crop = crop 
@@ -353,11 +326,12 @@ class YoloHandTracker:
 
         if self.use_hand:
             # ImageManip
-            manip = pipeline.createImageManip()
-            manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)      
+            manip = pipeline.createImageManip()   
             manip.inputImage.setQueueSize(1)
             manip.inputImage.setBlocking(False)
-            #manip.setMaxOutputFrameSize(1228800)
+            manip.setMaxOutputFrameSize(1228800)
+            manip.initialConfig.setResize(self.pd_input_length, self.pd_input_length)
+
             cam.preview.link(manip.inputImage)
             manip_cfg_in = pipeline.createXLinkIn()
             manip_cfg_in.setStreamName("manip_cfg")
@@ -379,7 +353,7 @@ class YoloHandTracker:
             pd_nn.out.link(pd_out.input)
             
             # Define hand landmark model
-            print(f"Creating Hand Landmark Neural Network ({'1 thread' if self.lm_nb_threads == 1 else '2 threads'})...")         
+            print("Creating Hand Landmark Neural Network")  
             lm_nn = pipeline.createNeuralNetwork()
             lm_nn.setBlobPath(self.lm_model)
             lm_nn.setNumInferenceThreads(self.lm_nb_threads)
@@ -443,14 +417,12 @@ class YoloHandTracker:
             lm_raw = np.array(inference.getLayerFp16("Identity_dense/BiasAdd/Add")).reshape(-1,3)
             # hand.norm_landmarks contains the normalized ([0:1]) 3D coordinates of landmarks in the square rotated body bounding box
             hand.norm_landmarks = lm_raw / self.lm_input_length
-            # hand.norm_landmarks[:,2] /= 0.4
 
             # Now calculate hand.landmarks = the landmarks in the image coordinate system (in pixel)
             src = np.array([(0, 0), (1, 0), (1, 1)], dtype=np.float32)
             dst = np.array([ (x, y) for x,y in hand.rect_points[1:]], dtype=np.float32) # hand.rect_points[0] is left bottom point and points going clockwise!
             mat = cv2.getAffineTransform(src, dst)
             lm_xy = np.expand_dims(hand.norm_landmarks[:,:2], axis=0)
-            # lm_z = hand.norm_landmarks[:,2:3] * hand.rect_w_a  / 0.4
             hand.landmarks = np.squeeze(cv2.transform(lm_xy, mat)).astype(np.int32)
 
 
@@ -480,7 +452,6 @@ class YoloHandTracker:
                 # We prepare the input to the Palm detector
                 cfg.setResizeThumbnail(self.pd_input_length, self.pd_input_length)
                 self.q_manip_cfg.send(cfg)
-
 
             if self.pad_h:
                 square_frame = cv2.copyMakeBorder(video_frame, self.pad_h, self.pad_h, self.pad_w, self.pad_w, cv2.BORDER_CONSTANT)
@@ -533,8 +504,7 @@ class YoloHandTracker:
                 self.use_previous_landmarks = True
                 if nb_hands == 0:
                     self.use_previous_landmarks = False
-                else:
-                    cv2.imshow("img_hand", img_hand)
+                #else: cv2.imshow("img_hand", img_hand)
                 
                 self.nb_hands_in_previous_frame = nb_hands           
                 
@@ -557,43 +527,6 @@ class YoloHandTracker:
 
     def exit(self):
         self.device.close()       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ###################### POGRAMA PRINCIPAL ######################
@@ -632,11 +565,21 @@ def ROI(COORDINATE, DELTA):
     y2 = y + DELTA
     return x1, x2, y1, y2
 
+# Función mapeada las coordenadas de una ROI x1, x2, y1, y2 en coordenadas de profundidad
+def ROI2DepthROI(COORDINATES):
+    x1, x2, y1, y2 = COORDINATES
+    x1_depth = int((x1+192*2)/1024*640) - 120
+    x2_depth = int((x2+192*2)/1024*640) - 120
+    y1_depth = int(y1/1024*640)
+    y2_depth = int(y2/1024*640)
+    return x1_depth, x2_depth, y1_depth, y2_depth
+
 # Función que calcula el promedio de los valores de profundidad de un ROI en metros
 def AverageDepth(ROI, depthFrame):
     x1, x2, y1, y2 = ROI
     depth = depthFrame[y1:y2, x1:x2]
-    return np.nanmean(depth)/1000
+    z = np.nanmean(depth)/1000
+    return z
 
 # funciones anónimas para incremento de la frecuencia de pulsos en los vibradores
 f1 = lambda x: math.sqrt(1 + x) - 1
@@ -707,7 +650,7 @@ YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 ##################### Inicialización de objetos #####################
 temperature_sensing = False
 use_yolo = True
-use_hand = True
+use_hand = False
 tracker = YoloHandTracker(
     temperature_sensing = temperature_sensing,
     use_hand = use_hand,
@@ -753,27 +696,28 @@ while True:
     if len(hands) > 0: # Si se detecta la mano del usuario, cambiar la referencia a la punta del dedo índice
         x_doll, y_doll = hands[0].landmarks[0,:2] # Coordenadas de la muñeca
         x_index_finger, y_index_finger = hands[0].landmarks[8,:2] # Coordenadas de la punta del dedo índice
-        dollROI = ROI((x_doll, y_doll), DELTA_DOLL) # ROI de la muñeca
-        dollDistance = AverageDepth(dollROI, depthFrame) # Distancia de la muñeca a la cámara
-
-        if visualize:
-            cv2.rectangle(frame, (x_doll-DELTA_DOLL, y_doll-DELTA_DOLL), (x_doll+DELTA_DOLL, y_doll+DELTA_DOLL), (0, 0, 255), 2)
-            cv2.circle(frame, (x_doll, y_doll), 5, (0, 0, 255), -1) # Dibujar un círculo rojo en la muñeca
-            cv2.circle(frame, (x_index_finger, y_index_finger), 5, (0, 0, 255), -1) # Dibujar un círculo rojo en la punta del dedo índice
+        dollROI = ROI((x_doll, y_doll), DELTA_DOLL) # ROI de la muñeca en la imagen de color
+        dollDepthROI = ROI2DepthROI(dollROI) # ROI de la muñeca en la imagen de profundidad
+        dollDistance = AverageDepth(dollDepthROI, depthFrame) # Distancia de la muñeca a la cámara
+        color_use_hand = (0, 0, 255) # Color rojo si la punta del dedo índice está siendo utilizada como referencia
         
         # Identificar si es la mano del usuario o no en base a la distancia de la muñeca a la cámara
-        if np.isnan(dollDistance) or dollDistance < .25: # Si la distancia de la muñeca a la cámara es menor a 50cm metro o nan (muy cerca de la cámara)
+        if np.isnan(dollDistance) or dollDistance < .5: # Si la distancia de la muñeca a la cámara es menor a 50 cm
             x_ref, y_ref = x_index_finger, y_index_finger # Usar coordenadas de la punta del dedo índice como referencia
-            if visualize:
-                cv2.rectangle(frame, (x_doll-DELTA_DOLL, y_doll-DELTA_DOLL), (x_doll+DELTA_DOLL, y_doll+DELTA_DOLL), (0, 255, 0), 2)
-                cv2.circle(frame, (x_doll, y_doll), 5, (0, 255, 0), -1) # Dibujar un círculo verde en la muñeca
-                cv2.circle(frame, (x_index_finger, y_index_finger), 5, (0, 255, 0), -1) # Dibujar un círculo verde en la punta del dedo índice
+            color_use_hand = (0, 255, 0) # Color verde si la punta del dedo índice está siendo utilizada como referencia
 
             if not mentioned_hand_use:
-                os.system("spd-say 'Dedo indice como referencia'") # Informar al usuario que su mano está siendo utilizada como referencia
+                os.system("spd-say 'Dedo índice como referencia'") # Informar al usuario que su mano está siendo utilizada como referencia
                 mentioned_hand_use = True # Activar la bandera para evitar que se repita el mensaje de uso de la mano
         else:
             mentioned_hand_use = False # Desactivar la bandera para que se vuelva a mencionar el uso de la mano
+
+        if visualize: # Visualizar en rojo la ROI de la muñeca y la punta del dedo índice
+            cv2.putText(frame, f"{dollDistance:.2f} m", (dollROI[1], dollROI[2]+DELTA_DOLL), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_use_hand, 1, cv2.LINE_AA)
+            cv2.rectangle(frame, (dollROI[0], dollROI[2]), (dollROI[1], dollROI[3]), color_use_hand, 1)
+            cv2.circle(frame, (x_doll, y_doll), 5, color_use_hand, -1) # Dibujar un círculo rojo en la muñeca
+            cv2.circle(frame, (x_index_finger, y_index_finger), 5, color_use_hand, -1) # Dibujar un círculo rojo en la punta del dedo índice
+            cv2.rectangle(depthFrame, (dollDepthROI[0], dollDepthROI[2]), (dollDepthROI[1], dollDepthROI[3]), color_use_hand, 1)
 
     # Detección del centro del bounding box más cercano al punto de referencia (CNBB)
     if len(yolo_detections) > 0:
@@ -784,7 +728,7 @@ while True:
             Centroids.append((x, y))
             label = labels[detection.label]
             confidence = detection.confidence * 100
-            distance = AverageDepth(Vertices(detection), depthFrame)
+            distance = AverageDepth(ROI2DepthROI(Vertices(detection)), depthFrame)
             if visualize:
                 cv2.putText(frame, label , (x1, y1), FontFace, FontSize, TextColor, 2)
                 cv2.putText(frame, "{:.0f} %".format(confidence), (x2, y), FontFace, FontSize, TextColor, 1)
@@ -857,15 +801,16 @@ while True:
         frames_counter = 0
         frames_timer = current_time
 
-    if visualize: 
+    if visualize:
         # Visualizar la mapa de profundidad
         depthFrameColor = cv2.normalize(depthFrame, None, 255, 0, cv2.NORM_INF, cv2.CV_8UC1)
         depthFrameColor = cv2.equalizeHist(depthFrameColor)
-        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_AUTUMN)
+        depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_JET)
         cv2.imshow("depth", depthFrameColor)
+
         # Mostrar el frame CentralROI y la profundidad de los obstáculos en la ROI central
         cv2.rectangle(frame, (CentralROI[0], CentralROI[2]), (CentralROI[1], CentralROI[3]), LineColor, 2)
-        cv2.putText(frame, "z = {:.2f} m".format(z[-1]), (CentralROI[0], CentralROI[2]), FontFace, FontSize, TextColor, 2)
+        cv2.putText(frame, "{:.2f} m".format(z[-1]), (CentralROI[1], CentralROI[2]+DELTA), FontFace, FontSize, TextColor, 1)
         # Mostrar FPS y tiempo de ejecución
         cv2.putText(frame, "fps: {:.2f}".format(fps), (0,height-FontSize-6), FontFace, FontSize, TextColor, 2)
         cv2.putText(frame, "t: " + ("{:.2f} s".format(times[-1])), (0, 25), FontFace, FontSize, TextColor, 2) 
@@ -879,4 +824,14 @@ while True:
 tracker.exit()
 
 # Guardar los datos en un archivo .mat
-
+if temperature_sensing: 
+    sio.savemat('data.mat', {
+        'z': z,
+        'd': d,
+        'h': h,
+        'v': v,
+        'times': times,
+        'chipTemperatures': chipTemperatures,
+        'haptic_messages': haptic_messages,
+        'nearest_labels': nearest_labels
+    })  
