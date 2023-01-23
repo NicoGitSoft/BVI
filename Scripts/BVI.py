@@ -255,6 +255,7 @@ class YoloHandTracker:
         # Define data queues
         self.q_video = self.device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
         self.q_stereo_out = self.device.getOutputQueue(name="stereo_out", maxSize=4, blocking=False)
+
         if self.use_hand:
             self.q_pd_out = self.device.getOutputQueue(name="pd_out", maxSize=2, blocking=False)
             self.q_manip_cfg = self.device.getInputQueue(name="manip_cfg")
@@ -306,12 +307,10 @@ class YoloHandTracker:
         left.setBoardSocket(dai.CameraBoardSocket.LEFT)
         left.setResolution(mono_resolution)
         left.setFps(self.internal_fps)
-
         right = pipeline.createMonoCamera()
         right.setBoardSocket(dai.CameraBoardSocket.RIGHT)
         right.setResolution(mono_resolution)
         right.setFps(self.internal_fps)
-
         stereo = pipeline.createStereoDepth()
         stereo.initialConfig.setConfidenceThreshold(230)
         stereo.setLeftRightCheck(True)
@@ -330,6 +329,7 @@ class YoloHandTracker:
             manip.setMaxOutputFrameSize(self.pd_input_length*self.pd_input_length*3)      
             manip.inputImage.setQueueSize(1)
             manip.inputImage.setBlocking(False)
+            #manip.setMaxOutputFrameSize(1228800)
             cam.preview.link(manip.inputImage)
             manip_cfg_in = pipeline.createXLinkIn()
             manip_cfg_in.setStreamName("manip_cfg")
@@ -338,7 +338,7 @@ class YoloHandTracker:
             # Define palm detection model
             print("Creating Palm Detection Neural Network...")
             pd_nn = pipeline.createNeuralNetwork()
-            pd_nn.setBlobPath(self.pd_model)
+            pd_nn.setBlobPath(self.pd_model)     
 
             # Specify that network takes latest arriving frame in non-blocking manner
             pd_nn.input.setQueueSize(1)
@@ -349,7 +349,7 @@ class YoloHandTracker:
             pd_out = pipeline.createXLinkOut()
             pd_out.setStreamName("pd_out")
             pd_nn.out.link(pd_out.input)
-        
+            
             # Define hand landmark model
             print(f"Creating Hand Landmark Neural Network ({'1 thread' if self.lm_nb_threads == 1 else '2 threads'})...")         
             lm_nn = pipeline.createNeuralNetwork()
@@ -361,7 +361,7 @@ class YoloHandTracker:
             lm_in = pipeline.createXLinkIn()
             lm_in.setStreamName("lm_in")
             lm_in.out.link(lm_nn.input)
-            
+
             # Hand landmark output
             lm_out = pipeline.createXLinkOut()
             lm_out.setStreamName("lm_out")
@@ -384,7 +384,6 @@ class YoloHandTracker:
 
             # Linking nodes for the output of yolo_out
             cam.preview.link(yolo.input)            # cam.preview -> yolo.input
-            yolo.passthrough.link(cam_out.input)    # yolo.passthrough -> cam_out.input
             yolo.out.link(yolo_out.input)           # yolo.out -> yolo_out.input
 
         if self.temperature_sensing:
@@ -642,8 +641,8 @@ YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 
 ##################### Inicialización de objetos #####################
 temperature_sensing = False
-use_yolo = False
-use_hand = False
+use_yolo = True
+use_hand = True
 tracker = YoloHandTracker(
     temperature_sensing = temperature_sensing,
     use_hand = use_hand,

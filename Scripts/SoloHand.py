@@ -6,13 +6,15 @@ from math import pi, floor, atan2, cos, sin
 from scipy.special import expit
 
 
+# Rutas de los modelos neuronales y configuraciones
 SCRIPT_DIR = Path(__file__).resolve().parent
-PALM_DETECTION_MODEL = str(SCRIPT_DIR / "Models/OpenVINO/Hands/palm_detection_sh4.blob")
-#LANDMARK_MODEL_FULL = str(SCRIPT_DIR / "Models/OpenVINO/Hands/hand_landmark_full_sh4.blob")
-LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/OpenVINO/Hands/hand_landmark_lite_sh4.blob")
-#LANDMARK_MODEL_SPARSE = str(SCRIPT_DIR / "Models/OpenVINO/Hands/hand_landmark_sparse_sh4.blob")
+PALM_DETECTION_MODEL = str(SCRIPT_DIR / "Models/Hands Models/palm_detection_sh4.blob")
+LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/Hands Models/hand_landmark_lite_sh4.blob")
+MY_YOLO_MODEL = str(SCRIPT_DIR / "Models/BVI Models/best3_openvino_2021.4_6shave.blob")
+YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 
-use_yolo = True
+
+use_yolo = False
 
 if use_yolo:
     YOLO_MODEL = str(SCRIPT_DIR / "Models/OpenVINO/BVIyolov7tiny_openvino_2021.4_6shave.blob")
