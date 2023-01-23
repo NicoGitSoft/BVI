@@ -155,6 +155,34 @@ class HandRegion:
         world_landmarks_rotated[:,:2] = np.dot(world_landmarks_rotated[:,:2], rot_m)
         return world_landmarks_rotated
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PALM_DETECTION_MODEL = str(SCRIPT_DIR / "Models/Hands Models/palm_detection_sh4.blob")
 LANDMARK_MODEL_LITE = str(SCRIPT_DIR / "Models/Hands Models/hand_landmark_lite_sh4.blob")
@@ -531,6 +559,43 @@ class YoloHandTracker:
         self.device.close()       
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ###################### POGRAMA PRINCIPAL ######################
 import numpy as np
 import scipy.io as sio
@@ -798,10 +863,13 @@ while True:
         depthFrameColor = cv2.equalizeHist(depthFrameColor)
         depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_AUTUMN)
         cv2.imshow("depth", depthFrameColor)
-
         # Mostrar el frame CentralROI y la profundidad de los obstáculos en la ROI central
-        cv2.rectangle(frame, (CentralROI[0], CentralROI[2]), (CentralROI[1], CentralROI[3]), (0, 255, 0), 2)
-        cv2.putText(frame, "z = {:.2f} m".format(z[-1]), (CentralROI[0], CentralROI[2]), cv2.FONT_HERSHEY_TRIPLEX, 0.4, (0, 255, 0))
+        cv2.rectangle(frame, (CentralROI[0], CentralROI[2]), (CentralROI[1], CentralROI[3]), LineColor, 2)
+        cv2.putText(frame, "z = {:.2f} m".format(z[-1]), (CentralROI[0], CentralROI[2]), FontFace, FontSize, TextColor, 2)
+        # Mostrar FPS y tiempo de ejecución
+        cv2.putText(frame, "fps: {:.2f}".format(fps), (0,height-FontSize-6), FontFace, FontSize, TextColor, 2)
+        cv2.putText(frame, "t: " + ("{:.2f} s".format(times[-1])), (0, 25), FontFace, FontSize, TextColor, 2) 
+        # Mostrar el frame de la cámara RGB
         cv2.imshow("frame", frame)
 
     # Salir del programa si alguna de estas teclas son presionadas {ESC, SPACE, q}
