@@ -530,7 +530,7 @@ class YoloHandTracker:
 
 
 ###################### POGRAMA PRINCIPAL ######################
-import cv2, serial, time, math, os, subprocess
+import cv2, serial, time, math, os, subprocess, platform
 import scipy.io as sio
 import numpy as np
 
@@ -649,26 +649,22 @@ YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 
 ##################### Inicialización de objetos #####################
 # Detectar si el sistema operativo es Raspbian para usar la termocupla MAX6675
-if os.uname()[4][:3] == 'arm':
-    import max6675
+try:
+    import RPi.GPIO, max6675
     # set the pin for communicate with MAX6675
     cs = 22
     sck = 18
     so = 16
     max6675.set_pin(cs, sck, so, 1)
     Measure = True
-else:
+except(ImportError, RuntimeError):
     Measure = False
 
-
-    
-
-use_yolo = True
-use_hand = False
+# Inicializar el objeto para la detección de manos y señalizaciones de espacios interiores
 tracker = YoloHandTracker(
     temperature_sensing = Measure,
-    use_hand = use_hand,
-    use_yolo = use_yolo,
+    use_hand = False,
+    use_yolo = True,
     yolo_model = MY_YOLO_MODEL,
     yolo_configurations = YOLO_CONFIG,
     )
@@ -849,7 +845,9 @@ if Measure:
         'h': h,
         'v': v,
         'times': times,
-        'chipTemperatures': chipTemperatures,
         'haptic_messages': haptic_messages,
-        'nearest_labels': nearest_labels
+        'nearest_labels': nearest_labels,
+        'chipTemperatures': chipTemperatures,
+        'max6675Temperature': max6675Temperature,
+        'cpuTemperature': cpuTemperature
     })  
