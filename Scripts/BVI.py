@@ -530,9 +530,9 @@ class YoloHandTracker:
 
 
 ###################### POGRAMA PRINCIPAL ######################
-import numpy as np
+import cv2, serial, time, math, os, subprocess
 import scipy.io as sio
-import cv2, serial, time, math, os
+import numpy as np
 
 # Coordenadas de los vertices un bounding box
 def Vertices(detection):        
@@ -648,22 +648,39 @@ MY_YOLO_MODEL = str(SCRIPT_DIR / "Models/BVI Models/best3_openvino_2021.4_6shave
 YOLO_CONFIG = str(SCRIPT_DIR / "Models/BVI Models/best3.json")
 
 ##################### Inicialización de objetos #####################
-temperature_sensing = False
+# Detectar si el sistema operativo es Raspbian para usar la termocupla MAX6675
+if os.uname()[4][:3] == 'arm':
+    import max6675
+    # set the pin for communicate with MAX6675
+    cs = 22
+    sck = 18
+    so = 16
+    max6675.set_pin(cs, sck, so, 1)
+    Measure = True
+else:
+    Measure = False
+
+
+    
+
 use_yolo = True
 use_hand = False
 tracker = YoloHandTracker(
-    temperature_sensing = temperature_sensing,
+    temperature_sensing = Measure,
     use_hand = use_hand,
     use_yolo = use_yolo,
     yolo_model = MY_YOLO_MODEL,
     yolo_configurations = YOLO_CONFIG,
     )
+
 visualize = True
 try:# Intentar establecer un objeto para comunicación serial a usando UART 
     serial = serial.Serial("/dev/ttyS0", 9600, timeout=1)
     serial_is_connected = True
 except:
     serial_is_connected = False
+
+
 
 ##################### Bucle principal #####################
 loop_start_time = time.time()
@@ -794,9 +811,10 @@ while True:
     current_time = time.time()
     times.append(current_time - loop_start_time) # Almacenar el tiempo de ejecución
     if (current_time - frames_timer) > 1:
-        if temperature_sensing: 
-            # Almacenar la temperatura del chip de sensor OAK-D cada segundo
+        if Measure: # Almacenar la temperatura del chip de sensor OAK-D cada segundo
             chipTemperatures.append(chip_temperature)
+            max6675Temperature.append(max6675.read_temp(cs)) # Temperatura del sensor DHT22
+            cpuTemperature.append(float(subprocess.check_output("vcgencmd measure_temp", shell=True).decode("utf-8").replace("temp=","").replace("'C\n",""))) # Temperatura de la CPU de la Raspberry Pi
         fps = ( frames_counter / (current_time - frames_timer) )
         frames_counter = 0
         frames_timer = current_time
@@ -824,7 +842,7 @@ while True:
 tracker.exit()
 
 # Guardar los datos en un archivo .mat
-if temperature_sensing: 
+if Measure: 
     sio.savemat('data.mat', {
         'z': z,
         'd': d,
