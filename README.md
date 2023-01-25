@@ -3,7 +3,7 @@
 ##### Complementary repository to the article: "Development Of An Assisted Vision System For Blind People Based On Hand Movement And Artificial Intelligence"
 
 ## Description
-This repocitorio aims to present the files that were used for the development of the thesis "Development of a vision system for the blind based on Artificial Intelligence" of the University of Santiago de Chile.
+This repocitorio aims to present the files that were used for the development of the thesis "Development of a vision system for the blind based on Artificial Intelligence" of the University of Santiago, Chile (Usach).
 
 ###### Author: Nicolás Ibáñez Rojas
 ###### E-mail: nicolas.ibanez.r@usach.cl
