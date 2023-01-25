@@ -11,6 +11,7 @@ This repocitorio aims to present the files that were used for the development of
 ## Illustrations
 ![Resolution](https://user-images.githubusercontent.com/65929186/209304016-66afaf8e-b362-4e75-98e6-e8511540d4c3.svg)
 
+#### Test images
 <img src="Media/VideoRGB_Hand.gif" alt="drawing" width="200"/> <img src="Media/6.jpg" alt="drawing" width="200"/> <img src="Media/11.jpg" alt="drawing" width="200"/> <img src="Media/7.jpg" alt="drawing" width="200"/>
 
 <img src="Media/12.jpg" alt="drawing" width="200"/> <img src="Media/2.jpg" alt="drawing" width="200"/> <img src="Media/3.jpg" alt="drawing" width="200"/> <img src="Media/4.jpg" alt="drawing" width="200"/>
