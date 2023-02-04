@@ -1,5 +1,5 @@
 # BVI System 
-![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v7-green.svg) ![https://docs.luxonis.com/en/latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg) ![zenodo 7479656](https://user-images.githubusercontent.com/65929186/209434816-94709752-ba98-4813-95d7-fbfb8a8cb6a6.svg)
+![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v8-green.svg) ![https://docs.luxonis.com/en/Latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg) ![zenodo 7479656](https://user-images.githubusercontent.com/65929186/209434816-94709752-ba98-4813-95d7-fbfb8a8cb6a6.svg)
 ##### Complementary repository to the article: "Development Of An Assisted Vision System For Blind People Based On Hand Movement And Artificial Intelligence"
 
 ## Description
