@@ -1,0 +1,37 @@
+{
+    "model": {
+        "xml": "SingsYOLOv8n.xml",
+        "bin": "SingsYOLOv8n.bin"
+    },
+    "nn_config": {
+        "output_format": "detection",
+        "NN_family": "YOLO",
+        "input_size": "640x640",
+        "NN_specific_metadata": {
+            "classes": 13,
+            "coordinates": 4,
+            "anchors": [],
+            "anchor_masks": {},
+            "iou_threshold": 0.5,
+            "confidence_threshold": 0.5
+        }
+    },
+    "mappings": {
+        "labels": [
+            "airplane symbol",
+            "baggage claim",
+            "bathrooms",
+            "danger electricity",
+            "down arrow",
+            "emergency exit",
+            "extinguisher symbol",
+            "fire extinguisher",
+            "handicapped symbol",
+            "left arrow",
+            "restaurants",
+            "right arrow",
+            "up arrow"
+        ]
+    },
+    "version": 1
+}
