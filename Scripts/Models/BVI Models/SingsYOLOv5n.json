@@ -1,0 +1,72 @@
+{
+    "model": {
+        "xml": "SingsYOLOv5n.xml",
+        "bin": "SingsYOLOv5n.bin"
+    },
+    "nn_config": {
+        "output_format": "detection",
+        "NN_family": "YOLO",
+        "input_size": "640x640",
+        "NN_specific_metadata": {
+            "classes": 13,
+            "coordinates": 4,
+            "anchors": [
+                3.642578125,
+                3.763671875,
+                8.109375,
+                8.2421875,
+                11.5703125,
+                13.421875,
+                16.78125,
+                19.25,
+                23.5,
+                27.65625,
+                35.78125,
+                23.9375,
+                34.8125,
+                41.53125,
+                59.6875,
+                58.25,
+                94.4375,
+                124.5
+            ],
+            "anchor_masks": {
+                "side80": [
+                    0,
+                    1,
+                    2
+                ],
+                "side40": [
+                    3,
+                    4,
+                    5
+                ],
+                "side20": [
+                    6,
+                    7,
+                    8
+                ]
+            },
+            "iou_threshold": 0.5,
+            "confidence_threshold": 0.5
+        }
+    },
+    "mappings": {
+        "labels": [
+            "airplane symbol",
+            "baggage claim",
+            "bathrooms",
+            "danger electricity",
+            "down arrow",
+            "emergency exit",
+            "extinguisher symbol",
+            "fire extinguisher",
+            "handicapped symbol",
+            "left arrow",
+            "restaurants",
+            "right arrow",
+            "up arrow"
+        ]
+    },
+    "version": 1
+}
