@@ -30,9 +30,11 @@ This repocitorio aims to present the files that were used for the development of
 BVI-DATASET contains some of the most frequent signage in airports, subways and shopping malls. Available at ROBOFLOW (link [here](https://app.roboflow.com/generic-signage/airports-ans-subways/7))
 
 
-#### Requirements
+#### Requirements using Raspberry Pi OS (64-bit)
 ```
-sudo apt install speech-dispatcher pyserial scipy curl
+PATH=$PATH:/home/pi/.local/bin
+sudo pip install mediapipe pyserial scipy protobuf==3.20.* 
+sudo apt install speech-dispatcher curl
 sudo curl -fL https://docs.luxonis.com/install_dependencies.sh | bash
 pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai
 ```
