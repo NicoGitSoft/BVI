@@ -34,7 +34,8 @@ BVI-DATASET contains some of the most frequent signage in airports, subways and 
 ```
 PATH=$PATH:/home/pi/.local/bin
 sudo pip install mediapipe pyserial scipy protobuf==3.20.* 
-sudo apt install speech-dispatcher curl
+sudo apt install speech-dispatcher curl git
 sudo curl -fL https://docs.luxonis.com/install_dependencies.sh | bash
 pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai
+git clone https://github.com/NicoGitSoft/BVI-TEST.git
 ```
