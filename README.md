@@ -22,7 +22,7 @@ This repocitorio aims to present the files that were used for the development of
 ![Generic-system-diagram](https://user-images.githubusercontent.com/65929186/206758452-ac6fd6a2-e0e3-484a-bc02-a80635da9536.svg)
 
 #### System circuit
-![BVIcircuit](https://user-images.githubusercontent.com/65929186/214612848-312c50b7-6fa4-4afb-aaaa-f5df1303d0f3.svg)
+![CircuitDiagram](https://user-images.githubusercontent.com/65929186/227062984-ef18af19-d4b8-4749-8ebe-b9d72e4725ff.svg)
 
 
 #### BVI-DATASET description
