@@ -81,9 +81,11 @@ print('Archivo 2\n VPU: ', popt_VPU_TEMPERATURE_2, '\n CPU: ', popt_CPU_TEMPERAT
 
 ########################## GRAFICAS ##########################
 # margenes de los ejes
-y_delta = 4
-y_min = min(popt_MAX6675_TEMPERATURE_1[0], popt_MAX6675_TEMPERATURE_2[0])
-y_max = max(popt_CPU_TEMPERATURE_1[1], popt_CPU_TEMPERATURE_2[1], popt_VPU_TEMPERATURE_1[1], popt_VPU_TEMPERATURE_2[1]) 
+y_delta = 2
+y_offset = 1
+y_offset_extra = 0.25
+y_min = min(popt_MAX6675_TEMPERATURE_1[0], popt_MAX6675_TEMPERATURE_2[0]) + y_offset
+y_max = max(popt_CPU_TEMPERATURE_1[1], popt_CPU_TEMPERATURE_2[1], popt_VPU_TEMPERATURE_1[1], popt_VPU_TEMPERATURE_2[1]) + y_offset
 
 # Configuración de las graficas
 rc('font', **{'family': 'serif', 'serif': ['Computer Modern'], 'size': 18})
@@ -92,7 +94,7 @@ rc('legend', fontsize=14)
 plt.rc('text.latex', preamble=r'\usepackage{wasysym}')
 
 # Crear una figura para los subplots
-figure_1 = plt.figure(figsize=(18, 6))
+figure_1 = plt.figure(figsize=(14, 6))
 
 
 # Crear el primer subplot
@@ -102,7 +104,7 @@ ax1.grid(color='gray', linestyle=':', alpha=.2)
 # Agregar datos del archivo 1
 ax1.plot(n1, CPU_TEMPERATURE_1, 'b.', markersize=2, label=r'CPU')
 ax1.plot(n1, VPU_TEMPERATURE_1, 'r.', markersize=2, label=r'VPU')
-ax1.plot(n1, MAX6675_TEMPERATURE_1, 'g.', markersize=2, label=r'Heat sink')
+ax1.plot(n1, MAX6675_TEMPERATURE_1, 'g.', markersize=2, label=r'Disipador de calor')
 # Graficar los ajustes de curva exponencial para los datos del archivo 1
 ax1.plot(n1, func(n1, *popt_VPU_TEMPERATURE_1), 'k--', label="_nolegend_")
 ax1.plot(n1, func(n1, *popt_CPU_TEMPERATURE_1), 'k--', label="_nolegend_")
@@ -119,14 +121,14 @@ ax1.text(1-0.008, yText_CPU_TEMPERATURE_1, str(round(popt_CPU_TEMPERATURE_1[1], 
 ax1.text(1-0.008, yText_VPU_TEMPERATURE_1, str(round(popt_VPU_TEMPERATURE_1[1], 2)) + r'$^{\circ}$C', horizontalalignment='right', verticalalignment='bottom', transform=ax1.transAxes, fontsize=14)	
 ax1.text(1-0.008, yText_MAX6675_TEMPERATURE_1, str(round(popt_MAX6675_TEMPERATURE_1[1], 2)) + r'$^{\circ}$C', horizontalalignment='right', verticalalignment='bottom', transform=ax1.transAxes, fontsize=14)
 # limites de los ejes
-ax1.set_ylim(y_min-y_delta, y_max+y_delta)
-ax1.set_xlim(0, 3900)
+ax1.set_ylim(y_min-y_delta+y_offset_extra, y_max+y_delta+y_offset_extra)
+ax1.set_xlim(0, 3999)
 # Etiquetas 
 ax1.set_ylabel(r'Temperatura ($^{\circ}$C)')
 ax1.set_xlabel(r'Tiempo (s)')
 ax1.set_title(r'Temperaturas sin procesamiento distribuido')
-ax1.legend(loc='center')
-
+# Leyenda desplazada un poco hacia arriva
+ax1.legend(loc='center right', bbox_to_anchor=(1, 0.6))
 # Crear el segundo subplot
 ax2 = figure_1.add_subplot(122)
 # Agrergar grid principal con lineas, punteadas y color gris claro (color='gray', linestyle=':', alpha=.2)
@@ -134,7 +136,7 @@ ax2.grid(color='gray', linestyle=':', alpha=.2)
 # Agregar datos del archivo 2
 ax2.plot(n2, VPU_TEMPERATURE_2, 'r.', markersize=2, label=r'VPU')
 ax2.plot(n2, CPU_TEMPERATURE_2, 'b.', markersize=2, label=r'CPU')
-ax2.plot(n2, MAX6675_TEMPERATURE_2, 'g.', markersize=2, label=r'Heat sink')
+ax2.plot(n2, MAX6675_TEMPERATURE_2, 'g.', markersize=2, label=r'Disipador de calor')
 # Graficar los ajustes de curva exponencial para los datos del archivo 2
 ax2.plot(n2, func(n2, *popt_VPU_TEMPERATURE_2), 'k--', label="_nolegend_")
 ax2.plot(n2, func(n2, *popt_CPU_TEMPERATURE_2), 'k--', label="_nolegend_")
@@ -151,17 +153,18 @@ ax2.text(1-0.008, yText_CPU_TEMPERATURE_2, str(round(popt_CPU_TEMPERATURE_2[1], 
 ax2.text(1-0.008, yText_VPU_TEMPERATURE_2, str(round(popt_VPU_TEMPERATURE_2[1], 2)) + r'$^{\circ}$C', horizontalalignment='right', verticalalignment='bottom', transform=ax2.transAxes, fontsize=14)
 ax2.text(1-0.008, yText_MAX6675_TEMPERATURE_2, str(round(popt_MAX6675_TEMPERATURE_2[1], 2)) + r'$^{\circ}$C', horizontalalignment='right', verticalalignment='bottom', transform=ax2.transAxes, fontsize=14)
 # limites de los ejes
-ax2.set_ylim(y_min-y_delta, y_max+y_delta)
+ax2.set_ylim(y_min-y_delta+y_offset_extra, y_max+y_delta+y_offset_extra)
 ax2.set_xlim(0, 3900)
 # Etiquetas
 ax2.set_ylabel(r'Temperatura ($^{\circ}$C)')
 ax2.set_xlabel(r'Tiempo (s)')
 ax2.set_title(r'Temperaturas con procesamiento distribuido')
-ax2.legend(loc="center")
+# Leyenda desplazada un poco hacia arriva
+ax2.legend(loc="center right", bbox_to_anchor=(1, 0.6))
 
 # Ajustar los subplots a los bordes de la figura
 plt.tight_layout()
-plt.subplots_adjust(top=0.947, bottom=0.109, left=0.04, right=0.995, hspace=0.2, wspace=0.103)
+plt.subplots_adjust(top=0.945, bottom=0.11, left=0.05, right=0.995, hspace=0.2, wspace=0.15)
 
 # Guardar la figura en pdf
 plt.savefig('Temperaturas del sistema.pdf', format='pdf', dpi=1200)
