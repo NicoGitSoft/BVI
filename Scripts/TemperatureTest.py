@@ -1,5 +1,5 @@
 from Utilities import *
-import max6675, subprocess, time, os, csv
+import max6675, subprocess, time, csv
 
 # Modelo a utilizar
 SingsYOLOv7t_MODEL = str(SCRIPT_DIR / "../Models/Sings/SingsYOLOv7t/SingsYOLOv7t_openvino_2021.4_6shave.blob")
