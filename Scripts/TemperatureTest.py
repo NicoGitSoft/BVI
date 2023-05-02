@@ -1,5 +1,5 @@
 from Utilities import *
-import max6675, subprocess, time, csv
+import MAX6675, subprocess, time, csv
 
 # Modelo a utilizar
 SingsYOLOv7t_MODEL = str(SCRIPT_DIR / "../Models/Sings/SingsYOLOv7t/SingsYOLOv7t_openvino_2021.4_6shave.blob")
@@ -11,7 +11,7 @@ Device = DepthYoloHandTracker(use_depth=True, use_hand=True, use_mediapipe=True,
 
 # Objetos y variables globales
 CS, SCK, SO, UNIT = 22, 18, 16, 1
-max6675.set_pin(CS, SCK, SO, UNIT)
+MAX6675.set_pin(CS, SCK, SO, UNIT)
 vpu_Temperatures = []           # Muestras de la temperatura del chip
 cpu_Temperatures = []           # Muestras de la temperatura del CPU
 thermocouple_temperatures = []  # Muestras de la temperatura del sensor MAX6675
