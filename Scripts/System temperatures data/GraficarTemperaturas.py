@@ -74,11 +74,47 @@ popt_VPU_TEMPERATURE_2, pcov_VPU_TEMPERATURE_2 = curve_fit(func, n2, VPU_TEMPERA
 popt_CPU_TEMPERATURE_2, pcov_CPU_TEMPERATURE_2 = curve_fit(func, n2, CPU_TEMPERATURE_2, p0=p0_CPU_TEMPERATURE)
 popt_MAX6675_TEMPERATURE_2, pcov_MAX6675_TEMPERATURE_2 = curve_fit(func, n2, MAX6675_TEMPERATURE_2, p0=p0_MAX6675_TEMPERATURE)
 
+########################## ANÁLISIS ##########################
+
 # Mostrar por consola los parámetros de ajuste pcov
 print('Archivo 1\n VPU: ', popt_VPU_TEMPERATURE_1, '\n CPU: ', popt_CPU_TEMPERATURE_1, '\n MAX6675: ', popt_MAX6675_TEMPERATURE_1)
 print('Archivo 2\n VPU: ', popt_VPU_TEMPERATURE_2, '\n CPU: ', popt_CPU_TEMPERATURE_2, '\n MAX6675: ', popt_MAX6675_TEMPERATURE_2)
 
+# Calcular desviación estándar de los parámetros de la termocupla MAX6675
+s_MAX6675_TEMPERATURE_1 = np.sqrt( sum((MAX6675_TEMPERATURE_1 - func(n1, *popt_MAX6675_TEMPERATURE_1))**2) / (len(n1) - 3) )
+s_MAX6675_TEMPERATURE_2 = np.sqrt( sum((MAX6675_TEMPERATURE_2 - func(n2, *popt_MAX6675_TEMPERATURE_2))**2) / (len(n2) - 3) )
 
+# Mostrar por consola la desviación estándar de los parámetros de la termocupla MAX6675
+print('Desviación estándar de los parámetros de la termocupla MAX6675\nArchivo 1\n', s_MAX6675_TEMPERATURE_1, '\nArchivo 2\n', s_MAX6675_TEMPERATURE_2)
+
+# Coeficiente de determinación
+r2_VPU_TEMPERATURE_1 = 1 - sum((VPU_TEMPERATURE_1 - func(n1, *popt_VPU_TEMPERATURE_1))**2) / sum((VPU_TEMPERATURE_1 - np.mean(VPU_TEMPERATURE_1))**2)
+r2_CPU_TEMPERATURE_1 = 1 - sum((CPU_TEMPERATURE_1 - func(n1, *popt_CPU_TEMPERATURE_1))**2) / sum((CPU_TEMPERATURE_1 - np.mean(CPU_TEMPERATURE_1))**2)
+r2_MAX6675_TEMPERATURE_1 = 1 - sum((MAX6675_TEMPERATURE_1 - func(n1, *popt_MAX6675_TEMPERATURE_1))**2) / sum((MAX6675_TEMPERATURE_1 - np.mean(MAX6675_TEMPERATURE_1))**2)
+
+r2_VPU_TEMPERATURE_2 = 1 - sum((VPU_TEMPERATURE_2 - func(n2, *popt_VPU_TEMPERATURE_2))**2) / sum((VPU_TEMPERATURE_2 - np.mean(VPU_TEMPERATURE_2))**2)
+r2_CPU_TEMPERATURE_2 = 1 - sum((CPU_TEMPERATURE_2 - func(n2, *popt_CPU_TEMPERATURE_2))**2) / sum((CPU_TEMPERATURE_2 - np.mean(CPU_TEMPERATURE_2))**2)
+r2_MAX6675_TEMPERATURE_2 = 1 - sum((MAX6675_TEMPERATURE_2 - func(n2, *popt_MAX6675_TEMPERATURE_2))**2) / sum((MAX6675_TEMPERATURE_2 - np.mean(MAX6675_TEMPERATURE_2))**2)
+
+# Mostrar por consola el coeficiente de determinación
+print('Coeficiente de determinación\nArchivo 1\n VPU: ', r2_VPU_TEMPERATURE_1, '\n CPU: ', r2_CPU_TEMPERATURE_1, '\n MAX6675: ', r2_MAX6675_TEMPERATURE_1)
+print('Archivo 2\n VPU: ', r2_VPU_TEMPERATURE_2, '\n CPU: ', r2_CPU_TEMPERATURE_2, '\n MAX6675: ', r2_MAX6675_TEMPERATURE_2)
+
+# Error absoluto medio
+MAE_VPU_TEMPERATURE_1 = sum(abs(VPU_TEMPERATURE_1 - func(n1, *popt_VPU_TEMPERATURE_1))) / len(n1)
+MAE_CPU_TEMPERATURE_1 = sum(abs(CPU_TEMPERATURE_1 - func(n1, *popt_CPU_TEMPERATURE_1))) / len(n1)
+MAE_MAX6675_TEMPERATURE_1 = sum(abs(MAX6675_TEMPERATURE_1 - func(n1, *popt_MAX6675_TEMPERATURE_1))) / len(n1)
+
+MAE_VPU_TEMPERATURE_2 = sum(abs(VPU_TEMPERATURE_2 - func(n2, *popt_VPU_TEMPERATURE_2))) / len(n2)
+MAE_CPU_TEMPERATURE_2 = sum(abs(CPU_TEMPERATURE_2 - func(n2, *popt_CPU_TEMPERATURE_2))) / len(n2)
+MAE_MAX6675_TEMPERATURE_2 = sum(abs(MAX6675_TEMPERATURE_2 - func(n2, *popt_MAX6675_TEMPERATURE_2))) / len(n2)
+
+# Mostrar por consola el error absoluto medio
+print('Error absoluto medio\nArchivo 1\n VPU: ', MAE_VPU_TEMPERATURE_1, '\n CPU: ', MAE_CPU_TEMPERATURE_1, '\n MAX6675: ', MAE_MAX6675_TEMPERATURE_1)
+print('Archivo 2\n VPU: ', MAE_VPU_TEMPERATURE_2, '\n CPU: ', MAE_CPU_TEMPERATURE_2, '\n MAX6675: ', MAE_MAX6675_TEMPERATURE_2)
+
+
+exit()
 ########################## GRAFICAS ##########################
 # margenes de los ejes
 y_delta = 2
