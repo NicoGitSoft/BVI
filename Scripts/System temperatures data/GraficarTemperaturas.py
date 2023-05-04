@@ -113,6 +113,18 @@ MAE_MAX6675_TEMPERATURE_2 = sum(abs(MAX6675_TEMPERATURE_2 - func(n2, *popt_MAX66
 print('Error absoluto medio\nArchivo 1\n VPU: ', MAE_VPU_TEMPERATURE_1, '\n CPU: ', MAE_CPU_TEMPERATURE_1, '\n MAX6675: ', MAE_MAX6675_TEMPERATURE_1)
 print('Archivo 2\n VPU: ', MAE_VPU_TEMPERATURE_2, '\n CPU: ', MAE_CPU_TEMPERATURE_2, '\n MAX6675: ', MAE_MAX6675_TEMPERATURE_2)
 
+# valor de tau
+tau_VPU_TEMPERATURE_1 = popt_VPU_TEMPERATURE_1[2]
+tau_CPU_TEMPERATURE_1 = popt_CPU_TEMPERATURE_1[2]
+tau_MAX6675_TEMPERATURE_1 = popt_MAX6675_TEMPERATURE_1[2]
+
+tau_VPU_TEMPERATURE_2 = popt_VPU_TEMPERATURE_2[2]
+tau_CPU_TEMPERATURE_2 = popt_CPU_TEMPERATURE_2[2]
+tau_MAX6675_TEMPERATURE_2 = popt_MAX6675_TEMPERATURE_2[2]
+
+# Mostrar por consola el valor de tau
+print('Valor de tau\nArchivo 1\n VPU: ', tau_VPU_TEMPERATURE_1, '\n CPU: ', tau_CPU_TEMPERATURE_1, '\n MAX6675: ', tau_MAX6675_TEMPERATURE_1)
+print('Archivo 2\n VPU: ', tau_VPU_TEMPERATURE_2, '\n CPU: ', tau_CPU_TEMPERATURE_2, '\n MAX6675: ', tau_MAX6675_TEMPERATURE_2)
 
 exit()
 ########################## GRAFICAS ##########################
