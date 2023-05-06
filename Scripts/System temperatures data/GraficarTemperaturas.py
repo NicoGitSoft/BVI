@@ -14,7 +14,7 @@ t2,vpu2,cpu2,max6675_2
 ...
 tn,vpun,cpun,max6675_n
 
-Las graficas usan formato LaTeX para los ejes y leyendas, por otro lado,
+Las gráficas usan formato LaTeX para los ejes y leyendas, por otro lado,
 se grafican dos subplots para comparar los datos de las temperaturas de lo los dos archivos
 """
 
@@ -36,7 +36,7 @@ file2 = pd.read_csv('system temperatures with distributed processing.csv')
 start_sample_file_1 = 0
 start_sample_file_2 = 100
 
-# vertor de nuestras
+# vector de nuestras
 n1 = np.arange(0, len(file1['TIMES'][start_sample_file_1:-start_sample_file_2]))
 n2 = np.arange(0, len(file2['TIMES'][start_sample_file_2:]))
 
