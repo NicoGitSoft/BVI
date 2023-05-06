@@ -62,7 +62,7 @@ VideoRGB = cv2.VideoWriter('VideoRGB.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 30, 
 
 # Región de interés (ROI) para la estimación de la distancia de obstáculos z
 DELTA = 30 # Radio de la ROI Cental en pixeles
-DELTA_DOLL = 15 # Umbral de distancia en pixeles entre la referencia y el centroide de la detección más cercana (centroid of the nearest detection CND)
+DELTA_DOLL = 15 # Umbral de distancia en pixeles entre la referencia y el centro de la detección más cercana (centroid of the nearest detection CND)
 x_center, y_center = width//2, height//2 # Coordenadas del centro de la imagen
 CentralROI = ROI((x_center, y_center), DELTA)
 

@@ -268,7 +268,7 @@ while True:
         for detection in detections: # Para cada detección
             # Calcular los vertices de la caja delimitadora
             x1, x2, y1, y2 = Vertices(detection)
-            # Calcular el centro de la caja delimitadora y agregarlo a la lista de centroides
+            # Calcular el centro de la caja delimitadora y agregarlo a la lista de centros
             x, y = Center(x1, x2, y1, y2)
             Centroids.append((x, y))
             if visualize:
