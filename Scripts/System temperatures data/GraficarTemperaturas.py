@@ -126,7 +126,6 @@ tau_MAX6675_TEMPERATURE_2 = popt_MAX6675_TEMPERATURE_2[2]
 print('Valor de tau\nArchivo 1\n VPU: ', tau_VPU_TEMPERATURE_1, '\n CPU: ', tau_CPU_TEMPERATURE_1, '\n MAX6675: ', tau_MAX6675_TEMPERATURE_1)
 print('Archivo 2\n VPU: ', tau_VPU_TEMPERATURE_2, '\n CPU: ', tau_CPU_TEMPERATURE_2, '\n MAX6675: ', tau_MAX6675_TEMPERATURE_2)
 
-exit()
 ########################## GRAFICAS ##########################
 # margenes de los ejes
 y_delta = 2
