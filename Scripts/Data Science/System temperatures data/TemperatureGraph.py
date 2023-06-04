@@ -122,10 +122,10 @@ ax1.text(1-0.008, yText_MAX6675_TEMPERATURE_1, str(round(popt_MAX6675_TEMPERATUR
 ax1.set_ylim(y_min-y_delta, y_max+y_delta)
 ax1.set_xlim(0, 3900)
 # Etiquetas 
-ax1.set_ylabel(r'Temperatura ($^{\circ}$C)')
-ax1.set_xlabel(r'Tiempo (s)')
-ax1.set_title(r'Temperaturas sin procesamiento distribuido')
-ax1.legend(loc='center')
+ax1.set_ylabel(r'Temperature ($^{\circ}$C)')
+ax1.set_xlabel(r'Time (s)')
+ax1.set_title(r'Temperatures without distributed processing')
+ax1.legend(loc='center right')
 
 # Crear el segundo subplot
 ax2 = figure_1.add_subplot(122)
@@ -154,17 +154,17 @@ ax2.text(1-0.008, yText_MAX6675_TEMPERATURE_2, str(round(popt_MAX6675_TEMPERATUR
 ax2.set_ylim(y_min-y_delta, y_max+y_delta)
 ax2.set_xlim(0, 3900)
 # Etiquetas
-ax2.set_ylabel(r'Temperatura ($^{\circ}$C)')
-ax2.set_xlabel(r'Tiempo (s)')
-ax2.set_title(r'Temperaturas con procesamiento distribuido')
-ax2.legend(loc="center")
+ax2.set_ylabel(r'Temperature ($^{\circ}$C)')
+ax2.set_xlabel(r'Time (s)')
+ax2.set_title(r'Temperatures with distributed processing')
+ax2.legend(loc="center right")
 
 # Ajustar los subplots a los bordes de la figura
 plt.tight_layout()
 plt.subplots_adjust(top=0.947, bottom=0.109, left=0.04, right=0.995, hspace=0.2, wspace=0.103)
 
 # Guardar la figura en pdf
-plt.savefig('Temperaturas del sistema.pdf', format='pdf', dpi=1200)
+plt.savefig('System temperatures.pdf', format='pdf', dpi=1200)
 
 # Mostrar las graficas
 plt.show()
