@@ -25,7 +25,7 @@ In the folder `Scripts` you can find all the programming codes used. The folder 
 ![Generic-system-diagram](https://user-images.githubusercontent.com/65929186/206758452-ac6fd6a2-e0e3-484a-bc02-a80635da9536.svg)
 
 #### System circuit
-![CircuitDiagram](https://user-images.githubusercontent.com/65929186/227062984-ef18af19-d4b8-4749-8ebe-b9d72e4725ff.svg)
+![BVIcircuit](https://github.com/NicoGitSoft/BVI/assets/65929186/9e765293-30c6-4202-92f9-5d16299c04ea)
 
 
 #### BVI-DATASET description
@@ -33,7 +33,7 @@ In the folder `Scripts` you can find all the programming codes used. The folder 
 BVI-DATASET contains some of the most frequent signage in airports, subways and shopping malls. Available at ROBOFLOW (link [here](https://app.roboflow.com/generic-signage/airports-ans-subways/7))
 
 
-#### Requirements using Raspberry Pi OS (64-bit)
+#### Requirements using Raspberry Pi OS (64-bits)
 ```
 PATH=$PATH:/home/pi/.local/bin
 sudo pip install mediapipe pyserial scipy protobuf==3.20.* 
