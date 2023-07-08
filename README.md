@@ -14,26 +14,26 @@ In the folder `Scripts` you can find all the programming codes used. The folder 
 ## Illustrations
 ![Resolution](https://user-images.githubusercontent.com/65929186/209304016-66afaf8e-b362-4e75-98e6-e8511540d4c3.svg)
 
-#### Test images
+## Test images
 <img src="Media/VideoRGB_Hand.gif" alt="drawing" width="200"/> <img src="Media/6.jpg" alt="drawing" width="200"/> <img src="Media/11.jpg" alt="drawing" width="200"/> <img src="Media/7.jpg" alt="drawing" width="200"/>
 
 <img src="Media/12.jpg" alt="drawing" width="200"/> <img src="Media/2.jpg" alt="drawing" width="200"/> <img src="Media/3.jpg" alt="drawing" width="200"/> <img src="Media/4.jpg" alt="drawing" width="200"/>
 
 <img src="Media/1.jpg" alt="drawing" width="200"/> <img src="Media/5.jpg" alt="drawing" width="200"/> <img src="Media/8.jpg" alt="drawing" width="200"/> <img src="Media/10.jpg" alt="drawing" width="200"/>
 
-#### System diagram
+## System diagram
 ![Generic-system-diagram](https://user-images.githubusercontent.com/65929186/206758452-ac6fd6a2-e0e3-484a-bc02-a80635da9536.svg)
 
-#### System circuit
+## System circuit
 ![BVIcircuit](https://github.com/NicoGitSoft/BVI/assets/65929186/9e765293-30c6-4202-92f9-5d16299c04ea)
 
 
-#### BVI-DATASET description
+## BVI-DATASET description
 
 BVI-DATASET contains some of the most frequent signage in airports, subways and shopping malls. Available at ROBOFLOW (link [here](https://app.roboflow.com/generic-signage/airports-ans-subways/7))
 
 
-#### Requirements using Raspberry Pi OS (64-bits)
+## Requirements using Raspberry Pi OS (64-bits)
 ```
 PATH=$PATH:/home/pi/.local/bin
 sudo pip install mediapipe pyserial scipy protobuf==3.20.* 
