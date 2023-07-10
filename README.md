@@ -1,6 +1,6 @@
 # BVI System 
 ![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v8-green.svg) ![https://docs.luxonis.com/en/Latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg) ![zenodo 7479656](https://user-images.githubusercontent.com/65929186/209434816-94709752-ba98-4813-95d7-fbfb8a8cb6a6.svg)
-##### Complementary repository to the article: "Development Of An Assisted Vision System For Blind People Based On Hand Movement And Artificial Intelligence"
+##### Complementary repository to the article: "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas"
 
 ## Description
 This repocitorio aims to present the files that were used for the development of the thesis "Development of a vision system for the blind based on Artificial Intelligence" of the University of Santiago, Chile (Usach).
