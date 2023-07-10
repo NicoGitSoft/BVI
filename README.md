@@ -3,7 +3,7 @@
 ##### Complementary repository to the article: "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas"
 
 ## Description
-This repocitorio aims to present the files that were used for the development of the thesis "Development of a vision system for the blind based on Artificial Intelligence" of the University of Santiago, Chile (Usach).
+This repocitorio aims to present the files that were used for the development of the thesis "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas" of the University of Santiago, Chile (Usach).
 
 ###### Author: Nicolás Ibáñez Rojas
 ###### E-mail: nicolas.ibanez.r@usach.cl
