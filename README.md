@@ -2,11 +2,14 @@
 ![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v8-green.svg) ![https://docs.luxonis.com/en/Latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg) ![zenodo 7479656](https://user-images.githubusercontent.com/65929186/209434816-94709752-ba98-4813-95d7-fbfb8a8cb6a6.svg)
 ##### Complementary repository to the article: "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas"
 
+[Manuscript Information (CAIS-D-23-00812).pdf](https://github.com/NicoGitSoft/BVI/files/12678844/Manuscript.Information.CAIS-D-23-00812.pdf)
+
 ## Description
 This repocitorio aims to present the files that were used for the development of the thesis "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas" of the University of Santiago, Chile (Usach).
 
 ###### Author: Nicolás Ibáñez Rojas
 ###### E-mail: nicolas.ibanez.r@usach.cl
+
 
 ## Organization of this repository
 In the folder `Scripts` you can find all the programming codes used. The folder `Arduino` contains the programs related to the Atmega328P microcontroller, and in the folder `Notebooks` you can find the Colab notebooks used to train the YOLOv5n, YOLOv7t, YOLOv7s, and YOLOv8n models with the set of public indoor signage images present in the `Dataset` folder. In the folder `Models/Sings` you will find the files with the already trained weights of the YOLO models in PyTorch, OpenVINO, and ONNX formats, along with their respective configurations in JSON and XML formats. Finally, in the folder `Models/Hands`, you can find the Palm Detection and HandLandmark models in OpenVINO format (.blob) to use directly on the OAK-D device.
