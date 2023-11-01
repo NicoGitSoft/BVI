@@ -4,10 +4,6 @@
 ## Description
 This repository aims to present the files that were used for the development a novel electronic travel assistance with artificial intelligence for the blind people in public areas.
 
-###### Author: Nicolás Ibáñez Rojas
-###### E-mail: nicolas.ibanez.r@usach.cl
-
-
 ## Organization of this repository
 In the folder `Scripts` you can find all the programming codes used. The folder `Arduino` contains the programs related to the Atmega328P microcontroller, and in the folder `Notebooks` you can find the Colab notebooks used to train the YOLOv5n, YOLOv7t, YOLOv7s, and YOLOv8n models with the set of public indoor signage images present in the `Dataset` folder. In the folder `Models/Sings` you will find the files with the already trained weights of the YOLO models in PyTorch, OpenVINO, and ONNX formats, along with their respective configurations in JSON and XML formats. Finally, in the folder `Models/Hands`, you can find the Palm Detection and HandLandmark models in OpenVINO format (.blob) to use directly on the OAK-D device.
 
