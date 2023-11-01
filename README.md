@@ -1,11 +1,8 @@
 # BVI System 
 ![https://github.com/WongKinYiu/yolov7](https://img.shields.io/badge/YOLO-v8-green.svg) ![https://docs.luxonis.com/en/Latest/](https://img.shields.io/badge/DepthAI-latest-blue.svg) ![zenodo 7479656](https://user-images.githubusercontent.com/65929186/209434816-94709752-ba98-4813-95d7-fbfb8a8cb6a6.svg)
-##### Complementary repository to the article: "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas"
-
-[Manuscript Information (CAIS-D-23-00812).pdf](https://github.com/NicoGitSoft/BVI/files/12678844/Manuscript.Information.CAIS-D-23-00812.pdf)
 
 ## Description
-This repocitorio aims to present the files that were used for the development of the thesis "Development of an Electronic Travel Aid with Artificial Intelligence for Blind People in Public Areas" of the University of Santiago, Chile (Usach).
+This repository aims to present the files that were used for the development a novel electronic travel assistance with artificial intelligence for the blind people in public areas.
 
 ###### Author: Nicolás Ibáñez Rojas
 ###### E-mail: nicolas.ibanez.r@usach.cl
